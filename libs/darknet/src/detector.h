@@ -7,6 +7,9 @@
 
 #ifdef OPENCV
 
+#define __USE_C99_MATH
+#include <stdbool.h>
+
 #include "network.h"
 #include "opencv2/core/types_c.h"
 
@@ -17,24 +20,25 @@ typedef struct darknet_object
 {
   char *label;
   float probability;
-  short centroid_x;
-  short centroid_y;
-  short left_bot_x;
-  short left_bot_y;
-  short right_top_x;
-  short right_top_y;
+  unsigned short centroid_x;
+  unsigned short centroid_y;
+  unsigned short left_bot_x;
+  unsigned short left_bot_y;
+  unsigned short right_top_x;
+  unsigned short right_top_y;
 } darknet_object;
 
 /**
  * Given an OPENCV image, this function returns
  */
-darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
-  char **class_names);
+bool darknet_detect(network *net, IplImage *ipl, float thresh,
+  char **class_names, darknet_object **detected_objects, int
+  *num_detected_objects);
 
 /**
  * Create the network
  */
-network *create_network(char *cfg_filename, char *weight_filename);
+network create_network(char *cfg_filename, char *weight_filename);
 
 /**
  * Get the classes that have been trained so far

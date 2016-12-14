@@ -27,8 +27,73 @@
 
 // Weird requirement to redefine the structures here
 extern "C" {
-  typedef struct darknet_object darknet_object;
-  typedef struct network network;
+  typedef struct darknet_object
+  {
+    char *label;
+    float probability;
+    unsigned short centroid_x;
+    unsigned short centroid_y;
+    unsigned short left_bot_x;
+    unsigned short left_bot_y;
+    unsigned short right_top_x;
+    unsigned short right_top_y;
+  } darknet_object;
+
+  typedef enum {
+    CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM
+  } learning_rate_policy;
+  typedef struct tree tree;
+  typedef struct layer layer;
+
+  typedef struct network{
+    float *workspace;
+    int n;
+    int batch;
+    int *seen;
+    float epoch;
+    int subdivisions;
+    float momentum;
+    float decay;
+    layer *layers;
+    int outputs;
+    float *output;
+    learning_rate_policy policy;
+
+    float learning_rate;
+    float gamma;
+    float scale;
+    float power;
+    int time_steps;
+    int step;
+    int max_batches;
+    float *scales;
+    int   *steps;
+    int num_steps;
+    int burn_in;
+
+    int adam;
+    float B1;
+    float B2;
+    float eps;
+
+    int inputs;
+    int h, w, c;
+    int max_crop;
+    int min_crop;
+    float angle;
+    float aspect;
+    float exposure;
+    float saturation;
+    float hue;
+
+    int gpu_index;
+    tree *hierarchy;
+
+  #ifdef GPU
+    float **input_gpu;
+    float **truth_gpu;
+  #endif
+  } network;
 };
 
 class Detector
@@ -93,7 +158,7 @@ private:
 
   // Darknet variables
   float probability_threshold_;
-  network *net_;
+  network net_;
   char **class_names_;
 };
 

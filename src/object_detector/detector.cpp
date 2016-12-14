@@ -4,9 +4,15 @@
 
 #include "object_detector/detector.h"
 
-extern "C" darknet_object **darknet_detect(network &net, IplImage *image,
-  float thresh, char **class_names);
-extern "C" network *create_network(char *cfg_filename, char *weight_filename);
+// Helper functions
+object_detector::ObjectPtr createObjectMessage(darknet_object
+  &detected_object);
+
+// Functions from darknet
+extern "C" bool darknet_detect(network *net, IplImage *image,
+  float thresh, char **class_names, darknet_object **detected_objects, int
+  *num_detected_objects);
+extern "C" network create_network(char *cfg_filename, char *weight_filename);
 extern "C" char **get_class_names(char *datacfg_filename);
 
 // Implementation of start
@@ -150,6 +156,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
   object_detector::SceneQuery::Response &res)
 {
   cv_bridge::CvImagePtr cv_ptr;
+  std_msgs::Header image_header;
   {
     // Try to get a lock to the latest image of the scene
     boost::mutex::scoped_lock lock(mutex_);
@@ -162,6 +169,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
     {
       cv_ptr = cv_bridge::toCvCopy(latest_image_,
                                    sensor_msgs::image_encodings::RGB8);
+      image_header = latest_image_->header;
     }
     catch (cv_bridge::Exception &ex)
     {
@@ -172,7 +180,34 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
 
   // Process the image of the scene
   IplImage ipl_image = (IplImage)cv_ptr->image;
-  ROS_INFO("Image dimensions: %d x %d", ipl_image.width, ipl_image.height);
+  darknet_object *detected_objects;
+  int num_detected_objects;
+  bool detection_success = darknet_detect(&net_, &ipl_image,
+                                          probability_threshold_,
+                                          class_names_, &detected_objects,
+                                          &num_detected_objects);
+  if (!detection_success)
+  {
+    ROS_ERROR("There was a failure during detection");
+    return false;
+  }
+
+  // Convert the data to ROS Message format
+  res.header.frame_id = image_header.frame_id;
+  res.header.stamp = ros::Time::now();
+  res.image = *(cv_ptr->toImageMsg());
+  res.image.header = image_header;
+
+  for (int i = 0; i < num_detected_objects; i++)
+  {
+    object_detector::ObjectPtr obj_ptr = createObjectMessage
+      (detected_objects[i]);
+    res.objects.push_back(*obj_ptr);
+  }
+
+  // Free the resources
+  free(detected_objects);
+
   return true;
 }
 
@@ -181,4 +216,21 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
   object_detector::ImageQuery::Response &res)
 {
   return true;
+}
+
+// Implementation of createObjectMessage
+object_detector::ObjectPtr createObjectMessage(darknet_object
+  &detected_object)
+{
+  object_detector::ObjectPtr msg =
+    boost::make_shared<object_detector::Object>();
+  msg->label = std::string(detected_object.label);
+  msg->probability = detected_object.probability;
+  msg->centroid_x = detected_object.centroid_x;
+  msg->centroid_y = detected_object.centroid_y;
+  msg->left_bot_x = detected_object.left_bot_x;
+  msg->left_bot_y = detected_object.left_bot_y;
+  msg->right_top_x = detected_object.right_top_x;
+  msg->right_top_y = detected_object.right_top_y;
+  return msg;
 }

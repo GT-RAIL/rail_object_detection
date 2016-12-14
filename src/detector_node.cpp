@@ -11,9 +11,7 @@ int main(int argc, char **argv)
   ros::NodeHandle private_handle("~");
   Detector detector(nh, private_handle);
   detector.start();
-  ros::Rate r(0.2);
-//  ros::spin();
-  r.sleep();
+  ros::spin();
   detector.stop();
   return 0;
 }

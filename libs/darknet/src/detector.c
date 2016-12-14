@@ -17,8 +17,9 @@ static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,2
 
 // ----------------------------------------------------------------------------
 // These functions are exported to the C++ system
-darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
-  char **class_names)
+bool darknet_detect(network *net, IplImage *ipl, float thresh,
+  char **class_names, darknet_object **detected_objects, int
+  *num_detected_objects)
 {
   float nms = 0.4;
 
@@ -55,7 +56,7 @@ darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
 
   // Parse the boxes into darknet_objects that can be returned
   int num_objects = 0;
-  darknet_object *results = NULL;
+  *detected_objects = NULL;
   int i;
   for (i = 0; i < dimensions; i++)
   {
@@ -63,44 +64,47 @@ darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
     float prob = probs[i][class];
     if (prob > thresh)
     {
-      results = realloc(results, ++num_objects * (sizeof *results));
-      if (!results)                           // Weird realloc fail
+      *detected_objects = realloc(*detected_objects, ++num_objects * (sizeof
+        **detected_objects));
+      if (!(*detected_objects))               // Weird realloc fail
       {
         fprintf(stderr, "Realloc of objects FAILED!!\n");
-        free(results);
+        free(*detected_objects); *detected_objects = NULL;
         free_image(im);
         free_image(sized);
         free(boxes);
         free_ptrs((void **)probs, dimensions);
-        return NULL;
+        return false;
       }
 
       box b = boxes[i];
-      results[num_objects-1].label = class_names[class];
-      results[num_objects-1].probability = prob;
-      results[num_objects-1].centroid_x = b.x*im.w;
-      results[num_objects-1].centroid_y = b.y*im.h;
-      results[num_objects-1].left_bot_x = (b.x-b.w/2.)*im.w;
-      results[num_objects-1].left_bot_y = (b.y+b.h/2.)*im.h;
-      results[num_objects-1].right_top_x = (b.x+b.w/2.)*im.w;
-      results[num_objects-1].right_top_y = (b.y-b.h/2.)*im.h;
+      (*detected_objects)[num_objects-1].label = class_names[class];
+      (*detected_objects)[num_objects-1].probability = prob;
+      (*detected_objects)[num_objects-1].centroid_x = b.x*im.w;
+      (*detected_objects)[num_objects-1].centroid_y = b.y*im.h;
+      (*detected_objects)[num_objects-1].left_bot_x = (b.x-b.w/2.)*im.w;
+      (*detected_objects)[num_objects-1].left_bot_y = (b.y+b.h/2.)*im.h;
+      (*detected_objects)[num_objects-1].right_top_x = (b.x+b.w/2.)*im.w;
+      (*detected_objects)[num_objects-1].right_top_y = (b.y-b.h/2.)*im.h;
 
 #ifdef DEBUG
       fprintf(
         stdout,
         "Detected object: %s, %f, (%hu,%hu), (%hu,%hu,%hu,%hu)\n",
-        results[num_objects-1].label
-        results[num_objects-1].probability
-        results[num_objects-1].centroid_x
-        results[num_objects-1].centroid_y
-        results[num_objects-1].left_bot_x
-        results[num_objects-1].left_bot_y
-        results[num_objects-1].right_top_x
-        results[num_objects-1].right_top_y
+        (*detected_objects)[num_objects-1].label
+        (*detected_objects)[num_objects-1].probability
+        (*detected_objects)[num_objects-1].centroid_x
+        (*detected_objects)[num_objects-1].centroid_y
+        (*detected_objects)[num_objects-1].left_bot_x
+        (*detected_objects)[num_objects-1].left_bot_y
+        (*detected_objects)[num_objects-1].right_top_x
+        (*detected_objects)[num_objects-1].right_top_y
       );
 #endif
     }
   }
+
+  *num_detected_objects = num_objects;
 
   // Free resources and exit
   free_image(im);
@@ -108,10 +112,10 @@ darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
   free(boxes);
   free_ptrs((void **)probs, dimensions);
 
-  return results;
+  return true;
 }
 
-network *create_network(char *cfg_filename, char *weight_filename)
+network create_network(char *cfg_filename, char *weight_filename)
 {
   network net = parse_network_cfg(cfg_filename);
   if (weight_filename)
@@ -119,7 +123,7 @@ network *create_network(char *cfg_filename, char *weight_filename)
     load_weights(&net, weight_filename);
   }
   set_batch_network(&net, 1);
-  return &net;
+  return net;
 }
 
 char **get_class_names(char *datacfg_filename)
@@ -582,6 +586,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             strtok(input, "\n");
         }
         image im = load_image_color(input,0,0);
+      printf("%d, %d\n", net.w, net.h);
         image sized = resize_image(im, net.w, net.h);
         layer l = net.layers[net.n-1];
 
