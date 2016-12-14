@@ -31,14 +31,20 @@ bool Detector::start()
   std::string weight_filename;
 
   private_nh_.param("num_service_threads", num_service_threads, int(0));
+
+  private_nh_.param("use_scene_service", use_scene_service_, bool(true));
+  private_nh_.param("use_image_service", use_image_service_, bool(false));
   private_nh_.param("scene_service_name", scene_service_name, std::string
     ("/san_object_detector/objects_in_scene"));
   private_nh_.param("image_service_name", image_service_name, std::string
     ("/san_object_detector/objects_in_image"));
+
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
+
   private_nh_.param("probability_threshold", probability_threshold_, float(
     .25));
+
   private_nh_.param("datacfg_filename", datacfg_filename, std::string
     ("/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/coco.data"));
   private_nh_.param("cfg_filename", cfg_filename, std::string
@@ -55,74 +61,95 @@ bool Detector::start()
   // int num_classes = sizeof(class_names_) / sizeof(class_names_[0]);
   // ROS_INFO("Created: %d classes", num_classes);
 
-  // Create the callback queues for the services and the subscribers
-  // NOTE: Might want to add the compressed hint to this subscription
-  image_sub_ = it_.subscribe(image_sub_topic_name, 1,
-                             &Detector::imageSubscriberCallback, this);
-
-  // Initialize the service callback queues
-  scene_callback_q_ = boost::make_shared<ros::CallbackQueue>();
-  image_callback_q_ = boost::make_shared<ros::CallbackQueue>();
-
-  // Service for the scene query
-  ros::AdvertiseServiceOptions scene_opts;
-  boost::function<bool(object_detector::SceneQuery::Request&,
-                       object_detector::SceneQuery::Response&)>
-    scene_callback_ptr = boost::bind(&Detector::sceneQueryCallback, this,
-                                     _1, _2);
-  scene_opts.init(scene_service_name, scene_callback_ptr);
-  scene_opts.callback_queue = scene_callback_q_.get();
-
-  ros::AdvertiseServiceOptions image_opts;
-  boost::function<bool(object_detector::ImageQuery::Request&,
-                       object_detector::ImageQuery::Response&)>
-    image_callback_ptr = boost::bind(&Detector::imageQueryCallback, this, _1,
-                                     _2);
-  image_opts.init(image_service_name, image_callback_ptr);
-  image_opts.callback_queue = image_callback_q_.get();
-
-  // Advertise the service and start the spinners
-  scene_query_server_ = nh_.advertiseService(scene_opts);
-  if (!scene_query_server_)
+  // Check to see if the scene service is to be used
+  if (use_scene_service_)
   {
-    ROS_FATAL("Error in starting the scene service");
-    return false;
+    // Create the callback queues for the services and the subscribers
+    // NOTE: Might want to add the compressed hint to this subscription
+    image_sub_ = it_.subscribe(image_sub_topic_name, 1,
+                               &Detector::imageSubscriberCallback, this);
+
+    // Initialize the service callback queues
+    scene_callback_q_ = boost::make_shared<ros::CallbackQueue>();
+
+    // Service for the scene query
+    ros::AdvertiseServiceOptions scene_opts;
+    boost::function<bool(object_detector::SceneQuery::Request &,
+      object_detector::SceneQuery::Response &)>
+      scene_callback_ptr = boost::bind(&Detector::sceneQueryCallback, this,
+                                       _1, _2);
+    scene_opts.init(scene_service_name, scene_callback_ptr);
+    scene_opts.callback_queue = scene_callback_q_.get();
+
+    // Advertise the service
+    scene_query_server_ = nh_.advertiseService(scene_opts);
+    if (!scene_query_server_)
+    {
+      ROS_FATAL("Error in starting the scene service");
+      return false;
+    }
+
+    // Start the spinners
+    scene_spinner_ = boost::make_shared<ros::AsyncSpinner>(num_service_threads,
+                                                           scene_callback_q_
+                                                             .get());
+    scene_spinner_->start();
   }
 
-  image_query_server_ = nh_.advertiseService(image_opts);
-  if (!image_query_server_)
+  // Check to see if the image service is to be used
+  if (use_image_service_)
   {
-    ROS_FATAL("Error in starting the image scene service");
-    return false;
+    // Initialize the service callback queues
+    image_callback_q_ = boost::make_shared<ros::CallbackQueue>();
+
+
+    // Service for the image query
+    ros::AdvertiseServiceOptions image_opts;
+    boost::function<bool(object_detector::ImageQuery::Request &,
+      object_detector::ImageQuery::Response &)>
+      image_callback_ptr = boost::bind(&Detector::imageQueryCallback, this, _1,
+                                       _2);
+    image_opts.init(image_service_name, image_callback_ptr);
+    image_opts.callback_queue = image_callback_q_.get();
+
+    // Advertise the service
+    image_query_server_ = nh_.advertiseService(image_opts);
+    if (!image_query_server_)
+    {
+      ROS_FATAL("Error in starting the image scene service");
+      return false;
+    }
+
+    // Start the spinners
+    image_spinner_ = boost::make_shared<ros::AsyncSpinner>(num_service_threads,
+                                                           image_callback_q_
+                                                             .get());
+    image_spinner_->start();
   }
 
-  scene_spinner_ = boost::make_shared<ros::AsyncSpinner>(num_service_threads,
-                                                         scene_callback_q_
-                                                           .get());
-  scene_spinner_->start();
-  image_spinner_ = boost::make_shared<ros::AsyncSpinner>(num_service_threads,
-                                                         image_callback_q_
-                                                           .get());
-  image_spinner_->start();
   return true;
 }
 
 // Implementation of stop
 bool Detector::stop()
 {
-  scene_spinner_->stop();
-  scene_spinner_.reset();
-  scene_query_server_.shutdown();
-  image_spinner_->stop();
-  image_spinner_.reset();
-  image_query_server_.shutdown();
+  if (use_scene_service_)
+  {
+    scene_spinner_->stop();
+    scene_spinner_.reset();
+    scene_query_server_.shutdown();
+    image_sub_.shutdown();
+    scene_callback_q_.reset();
+    latest_image_.reset();
+  }
 
-  image_sub_.shutdown();
-
-  scene_callback_q_.reset();
-  image_callback_q_.reset();
-
-  latest_image_.reset();
+  if (use_image_service_)
+  {
+    image_spinner_->stop();
+    image_spinner_.reset();
+    image_query_server_.shutdown();
+    image_callback_q_.reset();
+  }
 
   // FIXME: Double free when trying to free. Leave for now
   // free(net_);

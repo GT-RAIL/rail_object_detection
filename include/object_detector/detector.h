@@ -138,6 +138,10 @@ private:
   ros::NodeHandle nh_;
   ros::NodeHandle private_nh_;
 
+  // Booleans to track which services to use
+  bool use_scene_service_;
+  bool use_image_service_;
+
   // Publishers, Subscribers, and Service Servers
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
