@@ -9,8 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   image_geometry
   image_transport
   message_generation
-  message_runtime
-  opencv2
   roscpp
   sensor_msgs
   std_msgs
@@ -18,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -51,18 +49,17 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  Object.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  SceneQuery.srv
+  ImageQuery.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -72,10 +69,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -107,9 +105,14 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS
+    include
 #  LIBRARIES object_detector
-#  CATKIN_DEPENDS cv_bridge image_geometry image_transport message_generation message_runtime opencv2 roscpp sensor_msgs std_msgs tf
+  CATKIN_DEPENDS
+    cv_bridge
+    image_transport
+    message_runtime
+    sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -122,29 +125,51 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
+  libs/darknet/src
 )
 
+## Declare the C based darknet library
+#add_custom_target(darknet
+#  COMMAND make
+#  WORKING_DIRECTORY libs/darknet
+#)
+
 ## Declare a C++ library
-# add_library(object_detector
-#   src/${PROJECT_NAME}/object_detector.cpp
-# )
+add_library(detector
+  src/${PROJECT_NAME}/detector.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(object_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(detector
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
 
 ## Declare a C++ executable
-# add_executable(object_detector_node src/object_detector_node.cpp)
+add_executable(detector_node
+  src/detector_node.cpp
+)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(object_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(detector_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+  detector
+)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(object_detector_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(detector
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(detector_node
+  ${catkin_LIBRARIES}
+  detector
+)
 
 #############
 ## Install ##

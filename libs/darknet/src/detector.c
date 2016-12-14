@@ -6,6 +6,7 @@
 #include "box.h"
 #include "demo.h"
 #include "option_list.h"
+#include "detector.h"
 
 #ifdef OPENCV
 #include "opencv2/highgui/highgui_c.h"

@@ -1,0 +1,5 @@
+sensor_msgs/Image image
+---
+std_msgs/Header header
+sensor_msgs/Image image
+Object[] objects
