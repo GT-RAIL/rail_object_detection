@@ -129,11 +129,15 @@ include_directories(
   libs/darknet/src
 )
 
+message("CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
+message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
+message("PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}")
+
 ## Declare the C based darknet library
-#add_custom_target(darknet
-#  COMMAND make
-#  WORKING_DIRECTORY libs/darknet
-#)
+add_custom_target(darknet
+  COMMAND make library
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/darknet
+)
 
 ## Declare a C++ library
 add_library(detector
@@ -146,6 +150,7 @@ add_library(detector
 add_dependencies(detector
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+  darknet
 )
 
 ## Declare a C++ executable
@@ -164,6 +169,7 @@ add_dependencies(detector_node
 ## Specify libraries to link a library or executable target against
 target_link_libraries(detector
   ${catkin_LIBRARIES}
+  ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
 )
 
 target_link_libraries(detector_node

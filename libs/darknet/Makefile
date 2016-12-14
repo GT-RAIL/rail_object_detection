@@ -7,14 +7,16 @@ ARCH= --gpu-architecture=compute_52 --gpu-code=compute_52
 
 VPATH=./src/
 EXEC=darknet
+LIB=libdarknet.a
 OBJDIR=./obj/
 
+AR=ar
 CC=gcc
 NVCC=nvcc 
 OPTS=-Ofast
 LDFLAGS= -lm -pthread 
 COMMON= 
-CFLAGS=-Wall -Wfatal-errors 
+CFLAGS=-Wall -Wfatal-errors -fPIC
 
 ifeq ($(DEBUG), 1) 
 OPTS=-O0 -g
@@ -50,6 +52,11 @@ endif
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 DEPS = $(wildcard src/*.h) Makefile
 
+$(LIB): $(OBJS)
+	$(AR) rcs $@ $^
+
+library: $(LIB)
+
 all: obj backup results $(EXEC)
 
 $(EXEC): $(OBJS)
@@ -71,5 +78,5 @@ results:
 .PHONY: clean
 
 clean:
-	rm -rf $(OBJS) $(EXEC)
+	rm -rf $(OBJS) $(EXEC) $(LIB)
 

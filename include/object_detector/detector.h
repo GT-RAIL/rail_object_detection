@@ -23,6 +23,14 @@
 #include "object_detector/SceneQuery.h"
 #include "object_detector/ImageQuery.h"
 
+#include "detector.h"
+
+// Weird requirement to redefine the structures here
+extern "C" {
+  typedef struct darknet_object darknet_object;
+  typedef struct network network;
+};
+
 class Detector
 {
 public:
@@ -82,6 +90,11 @@ private:
   ros::CallbackQueuePtr image_callback_q_;
   boost::shared_ptr<ros::AsyncSpinner> scene_spinner_;
   boost::shared_ptr<ros::AsyncSpinner> image_spinner_;
+
+  // Darknet variables
+  float probability_threshold_;
+  network *net_;
+  char **class_names_;
 };
 
 #endif //SAN_OBJECT_DETECTOR_DETECTOR_NODE_H

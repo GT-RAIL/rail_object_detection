@@ -28,13 +28,18 @@ typedef struct darknet_object
 /**
  * Given an OPENCV image, this function returns
  */
-darknet_object **darknet_detect(network &net, IplImage *image, float thresh);
+darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
+  char **class_names);
 
 /**
  * Create the network
  */
-network create_network(char *datacfg_filename, char *cfg_filename, char
-  *weight_filename);
+network *create_network(char *cfg_filename, char *weight_filename);
+
+/**
+ * Get the classes that have been trained so far
+ */
+char **get_class_names(char *datacfg_filename);
 
 #endif
 

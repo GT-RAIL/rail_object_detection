@@ -4,6 +4,11 @@
 
 #include "object_detector/detector.h"
 
+extern "C" darknet_object **darknet_detect(network &net, IplImage *image,
+  float thresh, char **class_names);
+extern "C" network *create_network(char *cfg_filename, char *weight_filename);
+extern "C" char **get_class_names(char *datacfg_filename);
+
 // Implementation of start
 bool Detector::start()
 {
@@ -15,6 +20,9 @@ bool Detector::start()
   std::string scene_service_name;
   std::string image_service_name;
   std::string image_sub_topic_name;
+  std::string datacfg_filename;
+  std::string cfg_filename;
+  std::string weight_filename;
 
   private_nh_.param("num_service_threads", num_service_threads, int(0));
   private_nh_.param("scene_service_name", scene_service_name, std::string
@@ -23,8 +31,23 @@ bool Detector::start()
     ("/san_object_detector/objects_in_image"));
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
+  private_nh_.param("probability_threshold", probability_threshold_, float(
+    .25));
+  private_nh_.param("datacfg_filename", datacfg_filename, std::string
+    ("/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/coco.data"));
+  private_nh_.param("cfg_filename", cfg_filename, std::string
+    ("/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/yolo.cfg"));
+  private_nh_.param("weight_filename", weight_filename, std::string(
+    "/home/banerjs/Libraries/SAN/object_detector/libs/darknet/yolo.weights"));
 
   // Load the network into memory
+  class_names_ = get_class_names((char *)datacfg_filename.c_str());
+  net_ = create_network((char *)cfg_filename.c_str(), (char *)weight_filename
+    .c_str());
+
+  // FIXME: Cannot figure out the size of the class_names_ array :(
+  // int num_classes = sizeof(class_names_) / sizeof(class_names_[0]);
+  // ROS_INFO("Created: %d classes", num_classes);
 
   // Create the callback queues for the services and the subscribers
   // NOTE: Might want to add the compressed hint to this subscription
@@ -86,12 +109,26 @@ bool Detector::stop()
   scene_query_server_.shutdown();
   image_spinner_->stop();
   image_spinner_.reset();
+  image_query_server_.shutdown();
+
   image_sub_.shutdown();
 
   scene_callback_q_.reset();
   image_callback_q_.reset();
 
   latest_image_.reset();
+
+  // FIXME: Double free when trying to free. Leave for now
+  // free(net_);
+
+  // FIXME: Cannot figure out the size of the class, so can't free :(
+  // int num_classes = sizeof(class_names_) / sizeof(class_names_[0]);
+  // ROS_INFO("Freeing: %d classes", num_classes);
+  // for (int i = 0; i < num_classes; i++)
+  // {
+  //   free(class_names_[i]);
+  // }
+  // free(class_names_);
   return true;
 }
 
@@ -114,6 +151,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
 {
   cv_bridge::CvImagePtr cv_ptr;
   {
+    // Try to get a lock to the latest image of the scene
     boost::mutex::scoped_lock lock(mutex_);
     if (latest_image_.get() == NULL)
     {
@@ -132,6 +170,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
     }
   }
 
+  // Process the image of the scene
   IplImage ipl_image = (IplImage)cv_ptr->image;
   ROS_INFO("Image dimensions: %d x %d", ipl_image.width, ipl_image.height);
   return true;

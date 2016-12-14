@@ -13,6 +13,125 @@
 #endif
 static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,88,89,90};
 
+#ifdef OPENCV
+
+// ----------------------------------------------------------------------------
+// These functions are exported to the C++ system
+darknet_object *darknet_detect(network *net, IplImage *ipl, float thresh,
+  char **class_names)
+{
+  float nms = 0.4;
+
+  // Setup the image?
+  image im = ipl_to_image(ipl);
+  image sized = resize_image(im, net->w, net->h);
+  layer l = (*net).layers[net->n-1];
+  int dimensions = l.w*l.h*l.n;
+
+  // Prepare the data bins
+  box *boxes = calloc(dimensions, sizeof(box));
+  float **probs = calloc(dimensions, sizeof(float *));
+  int j;
+  for (j = 0; j < dimensions; j++)
+  {
+    probs[j] = calloc(l.classes, sizeof(float *));
+  }
+
+  // Perform the actual prediction
+  float *X = sized.data;
+#ifdef DEBUG
+  srand(2222222);
+  clock_t time = clock();
+#endif
+  network_predict(*net, X);
+#ifdef DEBUG
+  fprintf(stdout, "Predicted in %f seconds.\n", sec(clock()-time));
+#endif
+  get_region_boxes(l, 1, 1, thresh, probs, boxes, 0);
+  if (nms)
+  {
+    do_nms_sort(boxes, probs, dimensions, l.classes, nms);
+  }
+
+  // Parse the boxes into darknet_objects that can be returned
+  int num_objects = 0;
+  darknet_object *results = NULL;
+  int i;
+  for (i = 0; i < dimensions; i++)
+  {
+    int class = max_index(probs[i], l.classes);
+    float prob = probs[i][class];
+    if (prob > thresh)
+    {
+      results = realloc(results, ++num_objects * (sizeof *results));
+      if (!results)                           // Weird realloc fail
+      {
+        fprintf(stderr, "Realloc of objects FAILED!!\n");
+        free(results);
+        free_image(im);
+        free_image(sized);
+        free(boxes);
+        free_ptrs((void **)probs, dimensions);
+        return NULL;
+      }
+
+      box b = boxes[i];
+      results[num_objects-1].label = class_names[class];
+      results[num_objects-1].probability = prob;
+      results[num_objects-1].centroid_x = b.x*im.w;
+      results[num_objects-1].centroid_y = b.y*im.h;
+      results[num_objects-1].left_bot_x = (b.x-b.w/2.)*im.w;
+      results[num_objects-1].left_bot_y = (b.y+b.h/2.)*im.h;
+      results[num_objects-1].right_top_x = (b.x+b.w/2.)*im.w;
+      results[num_objects-1].right_top_y = (b.y-b.h/2.)*im.h;
+
+#ifdef DEBUG
+      fprintf(
+        stdout,
+        "Detected object: %s, %f, (%hu,%hu), (%hu,%hu,%hu,%hu)\n",
+        results[num_objects-1].label
+        results[num_objects-1].probability
+        results[num_objects-1].centroid_x
+        results[num_objects-1].centroid_y
+        results[num_objects-1].left_bot_x
+        results[num_objects-1].left_bot_y
+        results[num_objects-1].right_top_x
+        results[num_objects-1].right_top_y
+      );
+#endif
+    }
+  }
+
+  // Free resources and exit
+  free_image(im);
+  free_image(sized);
+  free(boxes);
+  free_ptrs((void **)probs, dimensions);
+
+  return results;
+}
+
+network *create_network(char *cfg_filename, char *weight_filename)
+{
+  network net = parse_network_cfg(cfg_filename);
+  if (weight_filename)
+  {
+    load_weights(&net, weight_filename);
+  }
+  set_batch_network(&net, 1);
+  return &net;
+}
+
+char **get_class_names(char *datacfg_filename)
+{
+  list *options = read_data_cfg(datacfg_filename);
+  char *name_list = option_find_str(options, "names", "data/names.list");
+  char **names = get_labels(name_list);
+  return names;
+}
+// ----------------------------------------------------------------------------
+#endif
+
 void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear)
 {
     list *options = read_data_cfg(datacfg);

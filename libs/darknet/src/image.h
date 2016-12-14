@@ -8,6 +8,10 @@
 #include <math.h>
 #include "box.h"
 
+#ifdef OPENCV
+#include "opencv2/imgproc/imgproc_c.h"
+#endif
+
 typedef struct {
     int h;
     int w;
@@ -83,5 +87,10 @@ image get_image_layer(image m, int l);
 
 void free_image(image m);
 void test_resize(char *filename);
+
+#ifdef OPENCV
+image ipl_to_image(IplImage *src);
+#endif
+
 #endif
 
