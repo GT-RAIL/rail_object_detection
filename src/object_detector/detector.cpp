@@ -156,7 +156,6 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
   object_detector::SceneQuery::Response &res)
 {
   cv_bridge::CvImagePtr cv_ptr;
-  std_msgs::Header image_header;
   {
     // Try to get a lock to the latest image of the scene
     boost::mutex::scoped_lock lock(mutex_);
@@ -169,7 +168,6 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
     {
       cv_ptr = cv_bridge::toCvCopy(latest_image_,
                                    sensor_msgs::image_encodings::RGB8);
-      image_header = latest_image_->header;
     }
     catch (cv_bridge::Exception &ex)
     {
@@ -193,10 +191,9 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
   }
 
   // Convert the data to ROS Message format
-  res.header.frame_id = image_header.frame_id;
-  res.header.stamp = ros::Time::now();
   res.image = *(cv_ptr->toImageMsg());
-  res.image.header = image_header;
+  res.header.frame_id = res.image.header.frame_id;
+  res.header.stamp = ros::Time::now();
 
   for (int i = 0; i < num_detected_objects; i++)
   {
@@ -215,6 +212,47 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
 bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
   object_detector::ImageQuery::Response &res)
 {
+  // Create a CV image from the image message
+  cv_bridge::CvImagePtr cv_ptr;
+  try
+  {
+    cv_ptr = cv_bridge::toCvCopy(req.image, sensor_msgs::image_encodings::RGB8);
+  }
+  catch (cv_bridge::Exception &ex)
+  {
+    ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
+    return false;
+  }
+
+  // Process the image
+  IplImage ipl_image = (IplImage)cv_ptr->image;
+  darknet_object *detected_objects;
+  int num_detected_objects;
+  bool detection_success = darknet_detect(&net_, &ipl_image,
+                                          probability_threshold_,
+                                          class_names_, &detected_objects,
+                                          &num_detected_objects);
+  if (!detection_success)
+  {
+    ROS_ERROR("There was a failure during detection");
+    return false;
+  }
+
+  // Populate the response object
+  res.image = *(cv_ptr->toImageMsg());
+  res.header.frame_id = res.image.header.frame_id;
+  res.header.stamp = ros::Time::now();
+
+  for (int i = 0; i < num_detected_objects; i++)
+  {
+    object_detector::ObjectPtr obj_ptr = createObjectMessage
+      (detected_objects[i]);
+    res.objects.push_back(*obj_ptr);
+  }
+
+  // Free the resources
+  free(detected_objects);
+
   return true;
 }
 
