@@ -61,9 +61,9 @@ Two optional test scripts are included in the `scripts` directory (`test_image_q
 ### detector_node
 Wrapper for object detection through ROS services.  Relevant services and parameters are as follows:
  * **Services**
-  * `san_object_detector/objects_in_scene` ([object_detector/SceneQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/SceneQuery.srv))  
+  * `detector_node/objects_in_scene` ([object_detector/SceneQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/SceneQuery.srv))  
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Scene Query service: recognize objects in the latest image from the camera stream `image_sub_topic_name`.  Takes no input, and outputs a list of detected, labeled objects and a corresponding image.  Only advertised if `use_scene_service` is true.
-  * `san_object_detector/objects_in_image` ([object_detector/ImageQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/ImageQuery.srv))  
+  * `detector_node/objects_in_image` ([object_detector/ImageQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/ImageQuery.srv))  
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Image Query service: recognize objects in an image passed to the service.  Takes an image as input, and outputs a list of detected, labeled objects and a corresponding image. Only advertised if `use_image_service` is true.
  * **Parameters**
   * `num_service_threads` (`int`, default: 0)  
