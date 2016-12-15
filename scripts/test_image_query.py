@@ -15,7 +15,7 @@ COLORS = [(10,10,10), (100,10,10), (200,10,10), (10,100,10), (10,200,10),
 def main():
 	bridge = CvBridge()
 
-	images = glob.glob('/home/banerjs/Workspaces/san/src/object_detector/libs/darknet/data/*.jpg')
+	images = glob.glob('/home/davidkent/ROS/san/src/object_detector/libs/darknet/data/*.jpg')
 	service_proxy = rospy.ServiceProxy('/san_object_detector/objects_in_image', ImageQuery)
 
 	for image in images:
@@ -33,9 +33,10 @@ def main():
 				COLORS[idx],
 				3
 			)
+		print "Objects in scene:", ",".join([x.label for x in resp.objects])
 
 		cv2.imshow('image', resp_cv)
-		cv2.waitKey(0)
+		cv2.waitKey(5000)
 
 if __name__ == '__main__':
 	main()

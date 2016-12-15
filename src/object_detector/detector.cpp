@@ -30,6 +30,13 @@ bool Detector::start()
   std::string cfg_filename;
   std::string weight_filename;
 
+  std::stringstream datacfg_default;
+  std::stringstream cfg_default;
+  std::stringstream weight_default;
+  datacfg_default << ros::package::getPath("object_detector") << "/libs/darknet/cfg/coco.data";
+  cfg_default << ros::package::getPath("object_detector") << "/libs/darknet/cfg/yolo.cfg";
+  weight_default << ros::package::getPath("object_detector") << "/libs/darknet/yolo.weights";
+
   private_nh_.param("num_service_threads", num_service_threads, int(0));
 
   private_nh_.param("use_scene_service", use_scene_service_, bool(true));
@@ -45,12 +52,9 @@ bool Detector::start()
   private_nh_.param("probability_threshold", probability_threshold_, float(
     .25));
 
-  private_nh_.param("datacfg_filename", datacfg_filename, std::string
-    ("/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/coco.data"));
-  private_nh_.param("cfg_filename", cfg_filename, std::string
-    ("/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/yolo.cfg"));
-  private_nh_.param("weight_filename", weight_filename, std::string(
-    "/home/banerjs/Libraries/SAN/object_detector/libs/darknet/yolo.weights"));
+  private_nh_.param("datacfg_filename", datacfg_filename, datacfg_default.str());
+  private_nh_.param("cfg_filename", cfg_filename, cfg_default.str());
+  private_nh_.param("weight_filename", weight_filename, weight_default.str());
 
   // Load the network into memory
   class_names_ = get_class_names((char *)datacfg_filename.c_str());
@@ -266,7 +270,7 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
   }
 
   // Populate the response object
-  res.image = *(cv_ptr->toImageMsg());
+  res.image = req.image;
   res.header.frame_id = res.image.header.frame_id;
   res.header.stamp = ros::Time::now();
 

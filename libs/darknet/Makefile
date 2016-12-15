@@ -55,7 +55,7 @@ DEPS = $(wildcard src/*.h) Makefile
 $(LIB): $(OBJS)
 	$(AR) rcs $@ $^
 
-library: $(LIB)
+library: obj $(LIB)
 
 all: obj backup results $(EXEC)
 

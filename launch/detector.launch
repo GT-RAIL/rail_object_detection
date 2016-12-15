@@ -6,9 +6,9 @@
 	<arg name="use_image_service" default="false" />
 	<arg name="image_sub_topic_name" default="/kinect/hd/image_color_rect" />
 	<arg name="probability_threshold" default="0.25" />
-	<arg name="datacfg_filename" default="/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/coco.data" />
-	<arg name="cfg_filename" default="/home/banerjs/Libraries/SAN/object_detector/libs/darknet/cfg/yolo.cfg" />
-	<arg name="weight_filename" default="/home/banerjs/Libraries/SAN/object_detector/libs/darknet/yolo.weights" />
+	<arg name="datacfg_filename" default="$(find object_detector)/libs/darknet/cfg/coco.data" />
+	<arg name="cfg_filename" default="$(find object_detector)/libs/darknet/cfg/yolo.cfg" />
+	<arg name="weight_filename" default="$(find object_detector)/libs/darknet/yolo.weights" />
 
 	<node pkg="object_detector" type="detector_node" name="detector_node">
 		<param name="num_service_threads" type="int" value="$(arg num_service_threads)" />

@@ -1,5 +1,5 @@
-sensor_msgs/Image image
+sensor_msgs/Image image     # Input image
 ---
 std_msgs/Header header
-sensor_msgs/Image image
-Object[] objects
+sensor_msgs/Image image     # Output image, same as input image; returned object data corresponds with this image
+Object[] objects            # Detected (labeled) objects
