@@ -5,7 +5,7 @@
 1. Put this package into your workspace
 1. Assuming `WS` as the top level directory of this package (where this README is located), navigate to `${WS}/libs/darknet`
 1. Download the weights from a remote location (as specified by Meera) `wget http://pjreddie.com/media/files/yolo.weights`
-1. Update the `names` entry in `${WS}/libs/darknet/data/coco.data` to contain the absolute filesystem path to the `coco.names` file (this file lives in the directory `${WS}/libs/darknet/data/`)
+1. Update the `names` entry in `${WS}/libs/darknet/cfg/coco.data` to contain the absolute filesystem path to the `coco.names` file (this file lives in the directory `${WS}/libs/darknet/data/`)
 1. Run `catkin_make` and enjoy the ability to use object detection! (If you need to update the file paths, use absolute paths!)
 
 ## Two Minute Intro
