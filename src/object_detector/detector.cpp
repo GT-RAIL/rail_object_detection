@@ -23,8 +23,6 @@ bool Detector::start()
 
   // Initialize the parameters
   int num_service_threads;
-  std::string scene_service_name;
-  std::string image_service_name;
   std::string image_sub_topic_name;
   std::string datacfg_filename;
   std::string cfg_filename;
@@ -41,10 +39,6 @@ bool Detector::start()
 
   private_nh_.param("use_scene_service", use_scene_service_, bool(true));
   private_nh_.param("use_image_service", use_image_service_, bool(false));
-  private_nh_.param("scene_service_name", scene_service_name, std::string
-    ("/san_object_detector/objects_in_scene"));
-  private_nh_.param("image_service_name", image_service_name, std::string
-    ("/san_object_detector/objects_in_image"));
 
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
@@ -82,11 +76,11 @@ bool Detector::start()
       object_detector::SceneQuery::Response &)>
       scene_callback_ptr = boost::bind(&Detector::sceneQueryCallback, this,
                                        _1, _2);
-    scene_opts.init(scene_service_name, scene_callback_ptr);
+    scene_opts.init("objects_in_scene", scene_callback_ptr);
     scene_opts.callback_queue = scene_callback_q_.get();
 
     // Advertise the service
-    scene_query_server_ = nh_.advertiseService(scene_opts);
+    scene_query_server_ = private_nh_.advertiseService(scene_opts);
     if (!scene_query_server_)
     {
       ROS_FATAL("Error in starting the scene service");
@@ -113,11 +107,11 @@ bool Detector::start()
       object_detector::ImageQuery::Response &)>
       image_callback_ptr = boost::bind(&Detector::imageQueryCallback, this, _1,
                                        _2);
-    image_opts.init(image_service_name, image_callback_ptr);
+    image_opts.init("objects_in_image", image_callback_ptr);
     image_opts.callback_queue = image_callback_q_.get();
 
     // Advertise the service
-    image_query_server_ = nh_.advertiseService(image_opts);
+    image_query_server_ = private_nh_.advertiseService(image_opts);
     if (!image_query_server_)
     {
       ROS_FATAL("Error in starting the image scene service");
