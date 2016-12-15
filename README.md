@@ -40,6 +40,7 @@ The response to both these queries contains a list of objects, each of which has
 ## Testing your Installation
 
 Two optional test scripts are included in the `scripts` directory (`test_image_query.py` and `test_scene_query.py`).  To test your installation, do the following:
+
 1. Copy some test .jpg images into the `libs/darknet/data` directory.
 1. Run a camera with your favorite ROS camera node.
 1. Launch the `object_detector` node with the image topic of your camera and image queries enabled:  
