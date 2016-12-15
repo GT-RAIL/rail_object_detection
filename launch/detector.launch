@@ -1,7 +1,5 @@
 <launch>
 	<arg name="num_service_threads" default="0" />
-	<arg name="scene_service_name" default="/san_object_detector/objects_in_scene" />
-	<arg name="image_service_name" default="/san_object_detector/objects_in_image" />
 	<arg name="use_scene_service" default="true" />
 	<arg name="use_image_service" default="false" />
 	<arg name="image_sub_topic_name" default="/kinect/hd/image_color_rect" />
@@ -12,8 +10,6 @@
 
 	<node pkg="object_detector" type="detector_node" name="detector_node">
 		<param name="num_service_threads" type="int" value="$(arg num_service_threads)" />
-		<param name="scene_service_name" type="string" value="$(arg scene_service_name)" />
-		<param name="image_service_name" type="string" value="$(arg image_service_name)" />
 		<param name="use_scene_service" type="bool" value="$(arg use_scene_service)" />
 		<param name="use_image_service" type="bool" value="$(arg use_image_service)" />
 		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
