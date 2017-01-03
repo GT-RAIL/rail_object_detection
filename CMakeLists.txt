@@ -52,6 +52,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 add_message_files(
   FILES
   Object.msg
+  Detections.msg
 )
 
 ## Generate services in the 'srv' folder

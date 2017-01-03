@@ -6,9 +6,11 @@
 #define SAN_OBJECT_DETECTOR_DETECTOR_NODE_H
 
 #include <string>
+#include <time.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <ros/ros.h>
@@ -20,81 +22,87 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 
+#include "object_detector/Detections.h"
 #include "object_detector/Object.h"
 #include "object_detector/SceneQuery.h"
 #include "object_detector/ImageQuery.h"
 
 #include "detector.h"
 
+namespace object_detector
+{
+
 // Weird requirement to redefine the structures here
 extern "C" {
-  typedef struct darknet_object
-  {
-    char *label;
-    float probability;
-    unsigned short centroid_x;
-    unsigned short centroid_y;
-    unsigned short left_bot_x;
-    unsigned short left_bot_y;
-    unsigned short right_top_x;
-    unsigned short right_top_y;
-  } darknet_object;
+typedef struct darknet_object
+{
+  char *label;
+  float probability;
+  unsigned short centroid_x;
+  unsigned short centroid_y;
+  unsigned short left_bot_x;
+  unsigned short left_bot_y;
+  unsigned short right_top_x;
+  unsigned short right_top_y;
+} darknet_object;
 
-  typedef enum {
-    CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM
-  } learning_rate_policy;
-  typedef struct tree tree;
-  typedef struct layer layer;
+typedef enum
+{
+  CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM
+} learning_rate_policy;
+typedef struct tree tree;
+typedef struct layer layer;
 
-  typedef struct network{
-    float *workspace;
-    int n;
-    int batch;
-    int *seen;
-    float epoch;
-    int subdivisions;
-    float momentum;
-    float decay;
-    layer *layers;
-    int outputs;
-    float *output;
-    learning_rate_policy policy;
+typedef struct network
+{
+  float *workspace;
+  int n;
+  int batch;
+  int *seen;
+  float epoch;
+  int subdivisions;
+  float momentum;
+  float decay;
+  layer *layers;
+  int outputs;
+  float *output;
+  learning_rate_policy policy;
 
-    float learning_rate;
-    float gamma;
-    float scale;
-    float power;
-    int time_steps;
-    int step;
-    int max_batches;
-    float *scales;
-    int   *steps;
-    int num_steps;
-    int burn_in;
+  float learning_rate;
+  float gamma;
+  float scale;
+  float power;
+  int time_steps;
+  int step;
+  int max_batches;
+  float *scales;
+  int *steps;
+  int num_steps;
+  int burn_in;
 
-    int adam;
-    float B1;
-    float B2;
-    float eps;
+  int adam;
+  float B1;
+  float B2;
+  float eps;
 
-    int inputs;
-    int h, w, c;
-    int max_crop;
-    int min_crop;
-    float angle;
-    float aspect;
-    float exposure;
-    float saturation;
-    float hue;
+  int inputs;
+  int h, w, c;
+  int max_crop;
+  int min_crop;
+  float angle;
+  float aspect;
+  float exposure;
+  float saturation;
+  float hue;
 
-    int gpu_index;
-    tree *hierarchy;
+  int gpu_index;
+  tree *hierarchy;
 
-  #ifdef GPU
-    float **input_gpu;
-    float **truth_gpu;
-  #endif
-  } network;
+#ifdef GPU
+  float **input_gpu;
+  float **truth_gpu;
+#endif
+} network;
 };
 
 class Detector
@@ -102,8 +110,9 @@ class Detector
 public:
   // Constructors
   Detector(ros::NodeHandle &handle, ros::NodeHandle &private_handle)
-  : nh_(handle), private_nh_(private_handle), it_(private_handle)
-  {}
+    : nh_(handle), private_nh_(private_handle), it_(private_handle),
+      perform_detections_(false), detections_thread_(NULL)
+  { }
 
   // Methods
 
@@ -120,7 +129,7 @@ public:
   /**
    * Callback for the images coming in on the image topic
    */
-  void imageSubscriberCallback(const sensor_msgs::ImageConstPtr& msg);
+  void imageSubscriberCallback(const sensor_msgs::ImageConstPtr &msg);
 
   /**
    * Callback for a scene query
@@ -134,18 +143,29 @@ public:
   bool imageQueryCallback(object_detector::ImageQuery::Request &req,
     object_detector::ImageQuery::Response &res);
 
+  /**
+   * Runnable function that performs detections in the background and
+   * publishes them to the detections topic
+   */
+  void runBackgroundDetections();
+
 private:
   // Node Handles to communicate with the param server
   ros::NodeHandle nh_;
   ros::NodeHandle private_nh_;
 
-  // Booleans to track which services to use
+  // Booleans to track which abilities to use
   bool use_scene_service_;
   bool use_image_service_;
+  bool publish_detections_topic_;
+
+  // Parameters for the abilities, such as publish frequencies, etc.
+  double_t max_desired_publish_freq_;
 
   // Publishers, Subscribers, and Service Servers
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
+  ros::Publisher detections_pub_;
   ros::ServiceServer scene_query_server_;
   ros::ServiceServer image_query_server_;
 
@@ -161,10 +181,15 @@ private:
   boost::shared_ptr<ros::AsyncSpinner> scene_spinner_;
   boost::shared_ptr<ros::AsyncSpinner> image_spinner_;
 
+  // Asynchronous threads
+  boost::thread *detections_thread_;
+  bool perform_detections_;
+
   // Darknet variables
   float probability_threshold_;
   network net_;
   char **class_names_;
 };
 
+}
 #endif //SAN_OBJECT_DETECTOR_DETECTOR_NODE_H

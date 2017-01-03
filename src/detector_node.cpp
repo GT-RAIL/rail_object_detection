@@ -4,6 +4,8 @@
 
 #include "object_detector/detector.h"
 
+using namespace object_detector;
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "detector_node");

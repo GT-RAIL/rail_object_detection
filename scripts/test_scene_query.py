@@ -15,7 +15,7 @@ def main():
 	rospy.init_node('test_scene_query_node')
 	bridge = CvBridge()
 
-	service_proxy = rospy.ServiceProxy('/san_object_detector/objects_in_scene', SceneQuery)
+	service_proxy = rospy.ServiceProxy('/detector_node/objects_in_scene', SceneQuery)
 
 	rate = rospy.Rate(.4)
 	while not rospy.is_shutdown():

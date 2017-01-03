@@ -2,7 +2,9 @@
 	<arg name="num_service_threads" default="0" />
 	<arg name="use_scene_service" default="true" />
 	<arg name="use_image_service" default="false" />
+	<arg name="publish_detections_topic" default="false" />
 	<arg name="image_sub_topic_name" default="/kinect/hd/image_color_rect" />
+	<arg name="max_desired_publish_freq" default="1.0" />
 	<arg name="probability_threshold" default="0.25" />
 	<arg name="datacfg_filename" default="$(find object_detector)/libs/darknet/cfg/coco.data" />
 	<arg name="cfg_filename" default="$(find object_detector)/libs/darknet/cfg/yolo.cfg" />
@@ -12,7 +14,9 @@
 		<param name="num_service_threads" type="int" value="$(arg num_service_threads)" />
 		<param name="use_scene_service" type="bool" value="$(arg use_scene_service)" />
 		<param name="use_image_service" type="bool" value="$(arg use_image_service)" />
+		<param name="publish_detections_topic" type="bool" value="$(arg publish_detections_topic)" />
 		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
+		<param name="max_desired_publish_freq" type="double" value="$(arg max_desired_publish_freq)" />
 		<param name="probability_threshold" type="double" value="$(arg probability_threshold)" />
 		<param name="datacfg_filename" type="string" value="$(arg datacfg_filename)" />
 		<param name="cfg_filename" type="string" value="$(arg cfg_filename)" />

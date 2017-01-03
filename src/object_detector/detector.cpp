@@ -4,9 +4,16 @@
 
 #include "object_detector/detector.h"
 
+using namespace object_detector;
+
 // Helper functions
-object_detector::ObjectPtr createObjectMessage(darknet_object
-  &detected_object);
+inline double_t timediff_usec(                  // Provide the difference btw
+  timespec start,                               // 2 times in usec
+  timespec end
+);
+object_detector::ObjectPtr createObjectMessage( // Create Object message
+  darknet_object &detected_object
+);
 
 // Functions from darknet
 extern "C" bool darknet_detect(network *net, IplImage *image,
@@ -31,14 +38,22 @@ bool Detector::start()
   std::stringstream datacfg_default;
   std::stringstream cfg_default;
   std::stringstream weight_default;
-  datacfg_default << ros::package::getPath("object_detector") << "/libs/darknet/cfg/coco.data";
-  cfg_default << ros::package::getPath("object_detector") << "/libs/darknet/cfg/yolo.cfg";
-  weight_default << ros::package::getPath("object_detector") << "/libs/darknet/yolo.weights";
+  datacfg_default << ros::package::getPath("object_detector")
+                  << "/libs/darknet/cfg/coco.data";
+  cfg_default << ros::package::getPath("object_detector")
+              << "/libs/darknet/cfg/yolo.cfg";
+  weight_default << ros::package::getPath("object_detector")
+                 << "/libs/darknet/yolo.weights";
 
   private_nh_.param("num_service_threads", num_service_threads, int(0));
 
   private_nh_.param("use_scene_service", use_scene_service_, bool(true));
   private_nh_.param("use_image_service", use_image_service_, bool(false));
+  private_nh_.param("publish_detections_topic", publish_detections_topic_,
+                    bool(false));
+
+  private_nh_.param("max_desired_publish_freq", max_desired_publish_freq_,
+                    double(1.0));
 
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
@@ -52,21 +67,26 @@ bool Detector::start()
 
   // Load the network into memory
   class_names_ = get_class_names((char *)datacfg_filename.c_str());
-  net_ = create_network((char *)cfg_filename.c_str(), (char *)weight_filename
-    .c_str());
+  net_ = create_network(
+    (char *)cfg_filename.c_str(),
+    (char *)weight_filename.c_str()
+  );
 
   // FIXME: Cannot figure out the size of the class_names_ array :(
   // int num_classes = sizeof(class_names_) / sizeof(class_names_[0]);
   // ROS_INFO("Created: %d classes", num_classes);
 
-  // Check to see if the scene service is to be used
-  if (use_scene_service_)
+  // Subscribe to the image topic if the scene query or publisher must be used
+  if (use_scene_service_ || publish_detections_topic_)
   {
-    // Create the callback queues for the services and the subscribers
     // NOTE: Might want to add the compressed hint to this subscription
     image_sub_ = it_.subscribe(image_sub_topic_name, 1,
                                &Detector::imageSubscriberCallback, this);
+  }
 
+  // Check to see if the scene service is to be used
+  if (use_scene_service_)
+  {
     // Initialize the service callback queues
     scene_callback_q_ = boost::make_shared<ros::CallbackQueue>();
 
@@ -100,7 +120,6 @@ bool Detector::start()
     // Initialize the service callback queues
     image_callback_q_ = boost::make_shared<ros::CallbackQueue>();
 
-
     // Service for the image query
     ros::AdvertiseServiceOptions image_opts;
     boost::function<bool(object_detector::ImageQuery::Request &,
@@ -125,18 +144,34 @@ bool Detector::start()
     image_spinner_->start();
   }
 
+  // Check to see if detections should be published asynchronously
+  if (publish_detections_topic_)
+  {
+    perform_detections_ = true;
+    detections_pub_ = private_nh_.advertise<object_detector::Detections>
+      ("detections", 2);
+    detections_thread_ = new boost::thread(
+      &Detector::runBackgroundDetections,
+      this
+    );
+  }
+
   return true;
 }
 
 // Implementation of stop
 bool Detector::stop()
 {
+  if (use_scene_service_ || publish_detections_topic_)
+  {
+    image_sub_.shutdown();
+  }
+
   if (use_scene_service_)
   {
     scene_spinner_->stop();
     scene_spinner_.reset();
     scene_query_server_.shutdown();
-    image_sub_.shutdown();
     scene_callback_q_.reset();
     latest_image_.reset();
   }
@@ -147,6 +182,14 @@ bool Detector::stop()
     image_spinner_.reset();
     image_query_server_.shutdown();
     image_callback_q_.reset();
+  }
+
+  if (publish_detections_topic_)
+  {
+    perform_detections_ = false;
+    detections_thread_->join();
+    delete detections_thread_;
+    detections_pub_.shutdown();
   }
 
   // FIXME: Double free when trying to free. Leave for now
@@ -194,7 +237,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
       cv_ptr = cv_bridge::toCvCopy(latest_image_,
                                    sensor_msgs::image_encodings::RGB8);
     }
-    catch (cv_bridge::Exception &ex)
+    catch (const cv_bridge::Exception &ex)
     {
       ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
       return false;
@@ -243,7 +286,7 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
   {
     cv_ptr = cv_bridge::toCvCopy(req.image, sensor_msgs::image_encodings::RGB8);
   }
-  catch (cv_bridge::Exception &ex)
+  catch (const cv_bridge::Exception &ex)
   {
     ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
     return false;
@@ -279,6 +322,86 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
   free(detected_objects);
 
   return true;
+}
+
+// Implementation of run object detections
+void Detector::runBackgroundDetections()
+{
+  // Setup the basics for the desired publish frequency
+  timespec time1, time2;
+  double_t proctime = 0;
+  double_t min_desired_sleep = 1.0/max_desired_publish_freq_ * 1e6;
+
+  while (perform_detections_)
+  {
+    cv_bridge::CvImagePtr cv_ptr;
+    clock_gettime(CLOCK_MONOTONIC, &time1);
+    {
+      boost::mutex::scoped_lock lock(mutex_);
+      if (latest_image_.get() == NULL)
+      {
+        ROS_INFO("No images from camera");
+        continue;
+      }
+      try
+      {
+        cv_ptr = cv_bridge::toCvCopy(latest_image_,
+                                     sensor_msgs::image_encodings::RGB8);
+      }
+      catch (const cv_bridge::Exception &ex)
+      {
+        ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
+        continue;
+      }
+    }
+
+    // Process the fetched image
+    IplImage ipl_image = (IplImage)cv_ptr->image;
+    darknet_object *detected_objects;
+    int num_detected_objects;
+    bool detection_success = darknet_detect(&net_, &ipl_image,
+                                            probability_threshold_,
+                                            class_names_, &detected_objects,
+                                            &num_detected_objects);
+    if (!detection_success)
+    {
+      ROS_ERROR("There was a failure during detection");
+      continue;
+    }
+
+    // Create the detections message and push back the data onto it
+    object_detector::Detections detections_msg;
+    detections_msg.header = cv_ptr->header;
+    for (int i = 0; i < num_detected_objects; i++)
+    {
+      object_detector::ObjectPtr obj_ptr = createObjectMessage(
+        detected_objects[i]
+      );
+      detections_msg.objects.push_back(*obj_ptr);
+    }
+
+    // Publish the data on the topic
+    detections_pub_.publish(detections_msg);
+
+    // Test the time and sleep the appropriate amount
+    clock_gettime(CLOCK_MONOTONIC, &time2);
+    proctime = timediff_usec(time1, time2);
+    if (min_desired_sleep > proctime)
+    {
+      usleep((uint32_t) (min_desired_sleep - proctime));
+    }
+  }
+}
+
+// Implementation of timediff_usec, taken from kunle12's code on Github
+inline double_t timediff_usec(timespec start, timespec end)
+{
+  if ((end.tv_nsec - start.tv_nsec) < 0) {
+    return (end.tv_sec - start.tv_sec - 1) * 1E6 + (1E9 + end.tv_nsec - start.tv_nsec) / 1E3;
+  }
+  else {
+    return (end.tv_sec - start.tv_sec) * 1E6 + (end.tv_nsec - start.tv_nsec) / 1E3;
+  }
 }
 
 // Implementation of createObjectMessage
