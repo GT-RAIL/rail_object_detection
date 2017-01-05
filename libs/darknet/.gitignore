@@ -16,7 +16,7 @@ darknet
 .fuse*
 
 # Don't commit the weights file
-yolo.weights
+*.weights
 
 # OS Generated #
 .DS_Store*
