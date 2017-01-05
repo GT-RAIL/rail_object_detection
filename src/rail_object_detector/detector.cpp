@@ -45,12 +45,12 @@ bool Detector::start()
   weight_default << ros::package::getPath("rail_object_detector")
                  << "/libs/darknet/yolo.weights";
 
-  private_nh_.param("num_service_threads", num_service_threads, int(2));
+  private_nh_.param("num_service_threads", num_service_threads, int(0));
 
   private_nh_.param("use_scene_service", use_scene_service_, bool(true));
   private_nh_.param("use_image_service", use_image_service_, bool(false));
   private_nh_.param("publish_detections_topic", publish_detections_topic_,
-                    bool(true));
+                    bool(false));
 
   private_nh_.param("max_desired_publish_freq", max_desired_publish_freq_,
                     double(1.0));
