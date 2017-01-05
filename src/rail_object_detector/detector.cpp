@@ -20,7 +20,7 @@ extern "C" bool darknet_detect(network *net, IplImage *image,
   float thresh, char **class_names, darknet_object **detected_objects, int
   *num_detected_objects);
 extern "C" network create_network(char *cfg_filename, char *weight_filename);
-extern "C" char **get_class_names(char *datacfg_filename);
+extern "C" char **get_class_names(char *classnames_filename);
 
 // Implementation of start
 bool Detector::start()
@@ -31,15 +31,15 @@ bool Detector::start()
   // Initialize the parameters
   int num_service_threads;
   std::string image_sub_topic_name;
-  std::string datacfg_filename;
+  std::string classnames_filename;
   std::string cfg_filename;
   std::string weight_filename;
 
-  std::stringstream datacfg_default;
+  std::stringstream classnames_default;
   std::stringstream cfg_default;
   std::stringstream weight_default;
-  datacfg_default << ros::package::getPath("rail_object_detector")
-                  << "/libs/darknet/cfg/coco.data";
+  classnames_default << ros::package::getPath("rail_object_detector")
+                     << "/libs/darknet/data/coco.names";
   cfg_default << ros::package::getPath("rail_object_detector")
               << "/libs/darknet/cfg/yolo.cfg";
   weight_default << ros::package::getPath("rail_object_detector")
@@ -61,12 +61,13 @@ bool Detector::start()
   private_nh_.param("probability_threshold", probability_threshold_, float(
     .25));
 
-  private_nh_.param("datacfg_filename", datacfg_filename, datacfg_default.str());
+  private_nh_.param("classnames_filename", classnames_filename,
+                    classnames_default.str());
   private_nh_.param("cfg_filename", cfg_filename, cfg_default.str());
   private_nh_.param("weight_filename", weight_filename, weight_default.str());
 
   // Load the network into memory
-  class_names_ = get_class_names((char *)datacfg_filename.c_str());
+  class_names_ = get_class_names((char *)classnames_filename.c_str());
   net_ = create_network(
     (char *)cfg_filename.c_str(),
     (char *)weight_filename.c_str()

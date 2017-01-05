@@ -44,7 +44,6 @@ The interval for grabbing images is specified in the form of a frequency. If the
 1. Put this package into your workspace
 1. Assuming `WS` as the top level directory of this package (where this README is located), navigate to `${WS}/libs/darknet`
 1. Download the weights from a remote location (as specified by Meera) `wget http://pjreddie.com/media/files/yolo.weights`
-1. Update the `names` entry in `${WS}/libs/darknet/cfg/coco.data` to contain the absolute filesystem path to the `coco.names` file (this file lives in the directory `${WS}/libs/darknet/data/`)
 1. Run `catkin_make` and enjoy the ability to use object detection! (If you need to update the file paths, use absolute paths!)
 
 ## Testing your Installation
@@ -103,7 +102,7 @@ Wrapper for object detection through ROS services.  Relevant services and parame
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Desired frequency of object detection. If frequency exceeds maximum detector frequency, the desired value will not be achieved
   * `probability_threshold` (`float`, default: 0.25)
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Confidence value in recognition below which a detected object is treated as unrecognized
-  * `datacfg_filename` (`string`, default: "${WS}/libs/darknet/cfg/coco.data")
+  * `classnames_filename` (`string`, default: "${WS}/libs/darknet/data/coco.names")
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
   * `cfg_filename` (`string`, default: "${WS}/libs/darknet/cfg/yolo.cfg")
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
@@ -122,7 +121,6 @@ roslaunch rail_object_detector detector.launch
 1. Scene Query and Publishing the topic don't seem to work well together for some unfathomable reason.
 1. GPU tests have been inconclusive. Need to gather more data.
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
-1. Remove the reliance on absolute file paths in the C code
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
 1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
 1. There are most probably some memory leaks that might accumulate over a long period of time. These should be fixed at some point.

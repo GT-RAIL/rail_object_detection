@@ -126,11 +126,9 @@ network create_network(char *cfg_filename, char *weight_filename)
   return net;
 }
 
-char **get_class_names(char *datacfg_filename)
+char **get_class_names(char *classnames_filename)
 {
-  list *options = read_data_cfg(datacfg_filename);
-  char *name_list = option_find_str(options, "names", "data/names.list");
-  char **names = get_labels(name_list);
+  char **names = get_labels(classnames_filename);
   return names;
 }
 // ----------------------------------------------------------------------------

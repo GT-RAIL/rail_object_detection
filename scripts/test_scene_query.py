@@ -34,7 +34,6 @@ def main():
 				)
 			cv2.imshow('image', resp_cv)
 			cv2.waitKey(100)
-                        rospy.loginfo("#objects: %d" % len(resp.objects))
 			rospy.loginfo("objects: %s" % ",".join([x.label for x in resp.objects]))
 		except CvBridgeError:
 			pass

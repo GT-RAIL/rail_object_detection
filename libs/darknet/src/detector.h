@@ -43,7 +43,7 @@ network create_network(char *cfg_filename, char *weight_filename);
 /**
  * Get the classes that have been trained so far
  */
-char **get_class_names(char *datacfg_filename);
+char **get_class_names(char *classnames_filename);
 
 #endif
 
