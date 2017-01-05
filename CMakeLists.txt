@@ -130,9 +130,8 @@ include_directories(
   libs/darknet/src
 )
 
-message("CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
-message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
-message("PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}")
+# Trial of GPU
+add_definitions(-DGPU=1)
 
 ## Declare the C based darknet library
 add_custom_target(darknet
@@ -171,6 +170,11 @@ add_dependencies(detector_node
 target_link_libraries(detector
   ${catkin_LIBRARIES}
   ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
+  -L/usr/local/cuda/lib64
+  -lcuda
+  -lcudart
+  -lcublas
+  -lcurand
 )
 
 target_link_libraries(detector_node
