@@ -2,16 +2,16 @@
 // Created by banerjs on 12/13/16.
 //
 
-#include "object_detector/detector.h"
+#include "rail_object_detector/detector.h"
 
-using namespace object_detector;
+using namespace rail_object_detector;
 
 // Helper functions
-inline double_t timediff_usec(                  // Provide the difference btw
-  timespec start,                               // 2 times in usec
-  timespec end
-);
-object_detector::ObjectPtr createObjectMessage( // Create Object message
+//inline double_t timediff_usec(                  // Provide the difference btw
+//  timespec start,                               // 2 times in usec
+//  timespec end
+//);
+ObjectPtr createObjectMessage(                  // Create Object message
   darknet_object &detected_object
 );
 
@@ -38,19 +38,19 @@ bool Detector::start()
   std::stringstream datacfg_default;
   std::stringstream cfg_default;
   std::stringstream weight_default;
-  datacfg_default << ros::package::getPath("object_detector")
+  datacfg_default << ros::package::getPath("rail_object_detector")
                   << "/libs/darknet/cfg/coco.data";
-  cfg_default << ros::package::getPath("object_detector")
+  cfg_default << ros::package::getPath("rail_object_detector")
               << "/libs/darknet/cfg/yolo.cfg";
-  weight_default << ros::package::getPath("object_detector")
+  weight_default << ros::package::getPath("rail_object_detector")
                  << "/libs/darknet/yolo.weights";
 
-  private_nh_.param("num_service_threads", num_service_threads, int(0));
+  private_nh_.param("num_service_threads", num_service_threads, int(2));
 
   private_nh_.param("use_scene_service", use_scene_service_, bool(true));
   private_nh_.param("use_image_service", use_image_service_, bool(false));
   private_nh_.param("publish_detections_topic", publish_detections_topic_,
-                    bool(false));
+                    bool(true));
 
   private_nh_.param("max_desired_publish_freq", max_desired_publish_freq_,
                     double(1.0));
@@ -92,8 +92,7 @@ bool Detector::start()
 
     // Service for the scene query
     ros::AdvertiseServiceOptions scene_opts;
-    boost::function<bool(object_detector::SceneQuery::Request &,
-      object_detector::SceneQuery::Response &)>
+    boost::function<bool(SceneQuery::Request &, SceneQuery::Response &)>
       scene_callback_ptr = boost::bind(&Detector::sceneQueryCallback, this,
                                        _1, _2);
     scene_opts.init("objects_in_scene", scene_callback_ptr);
@@ -122,8 +121,7 @@ bool Detector::start()
 
     // Service for the image query
     ros::AdvertiseServiceOptions image_opts;
-    boost::function<bool(object_detector::ImageQuery::Request &,
-      object_detector::ImageQuery::Response &)>
+    boost::function<bool(ImageQuery::Request &, ImageQuery::Response &)>
       image_callback_ptr = boost::bind(&Detector::imageQueryCallback, this, _1,
                                        _2);
     image_opts.init("objects_in_image", image_callback_ptr);
@@ -148,8 +146,7 @@ bool Detector::start()
   if (publish_detections_topic_)
   {
     perform_detections_ = true;
-    detections_pub_ = private_nh_.advertise<object_detector::Detections>
-      ("detections", 2);
+    detections_pub_ = private_nh_.advertise<Detections>("detections", 2);
     detections_thread_ = new boost::thread(
       &Detector::runBackgroundDetections,
       this
@@ -220,8 +217,8 @@ void Detector::imageSubscriberCallback(
 }
 
 // Implementation of scene query callback
-bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
-  object_detector::SceneQuery::Response &res)
+bool Detector::sceneQueryCallback(SceneQuery::Request &req,
+  SceneQuery::Response &res)
 {
   cv_bridge::CvImagePtr cv_ptr;
   {
@@ -229,7 +226,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
     boost::mutex::scoped_lock lock(mutex_);
     if (latest_image_.get() == NULL)
     {
-      ROS_INFO("No images from camera");
+      ROS_INFO_ONCE("No images from camera");
       return true;
     }
     try
@@ -265,8 +262,7 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
 
   for (int i = 0; i < num_detected_objects; i++)
   {
-    object_detector::ObjectPtr obj_ptr = createObjectMessage
-      (detected_objects[i]);
+    ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
     res.objects.push_back(*obj_ptr);
   }
 
@@ -277,8 +273,8 @@ bool Detector::sceneQueryCallback(object_detector::SceneQuery::Request &req,
 }
 
 // Implementation of the image query callback
-bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
-  object_detector::ImageQuery::Response &res)
+bool Detector::imageQueryCallback(ImageQuery::Request &req,
+  ImageQuery::Response &res)
 {
   // Create a CV image from the image message
   cv_bridge::CvImagePtr cv_ptr;
@@ -313,8 +309,7 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
 
   for (int i = 0; i < num_detected_objects; i++)
   {
-    object_detector::ObjectPtr obj_ptr = createObjectMessage
-      (detected_objects[i]);
+    ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
     res.objects.push_back(*obj_ptr);
   }
 
@@ -327,32 +322,46 @@ bool Detector::imageQueryCallback(object_detector::ImageQuery::Request &req,
 // Implementation of run object detections
 void Detector::runBackgroundDetections()
 {
-  // Setup the basics for the desired publish frequency
-  timespec time1, time2;
-  double_t proctime = 0;
-  double_t min_desired_sleep = 1.0/max_desired_publish_freq_ * 1e6;
+  ros::Time time1, time2;
+  ros::Duration proctime;
+  ros::Duration min_desired_sleep = ros::Duration(1/max_desired_publish_freq_);
 
   while (perform_detections_)
   {
     cv_bridge::CvImagePtr cv_ptr;
-    clock_gettime(CLOCK_MONOTONIC, &time1);
+    time1 = ros::Time::now();
+    bool image_is_valid = false;
     {
       boost::mutex::scoped_lock lock(mutex_);
       if (latest_image_.get() == NULL)
       {
-        ROS_INFO("No images from camera");
-        continue;
+        ROS_INFO_ONCE("No images from camera");
       }
-      try
+      else
       {
-        cv_ptr = cv_bridge::toCvCopy(latest_image_,
-                                     sensor_msgs::image_encodings::RGB8);
+        try
+        {
+          cv_ptr = cv_bridge::toCvCopy(latest_image_,
+                                       sensor_msgs::image_encodings::RGB8);
+          image_is_valid = true;
+        }
+        catch (const cv_bridge::Exception &ex)
+        {
+          ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
+        }
       }
-      catch (const cv_bridge::Exception &ex)
+    }
+
+    // Loop if the image is not valid
+    if (!image_is_valid)
+    {
+      time2 = ros::Time::now();
+      if (min_desired_sleep > time2-time1)
       {
-        ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
-        continue;
+        proctime = min_desired_sleep - (time2 - time1);
+        proctime.sleep();
       }
+      continue;
     }
 
     // Process the fetched image
@@ -370,46 +379,31 @@ void Detector::runBackgroundDetections()
     }
 
     // Create the detections message and push back the data onto it
-    object_detector::Detections detections_msg;
+    Detections detections_msg;
     detections_msg.header = cv_ptr->header;
     for (int i = 0; i < num_detected_objects; i++)
     {
-      object_detector::ObjectPtr obj_ptr = createObjectMessage(
-        detected_objects[i]
-      );
+      ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
       detections_msg.objects.push_back(*obj_ptr);
     }
 
     // Publish the data on the topic
     detections_pub_.publish(detections_msg);
 
-    // Test the time and sleep the appropriate amount
-    clock_gettime(CLOCK_MONOTONIC, &time2);
-    proctime = timediff_usec(time1, time2);
-    if (min_desired_sleep > proctime)
+    // Sleep the appropriate amount
+    time2 = ros::Time::now();
+    if (min_desired_sleep > time2-time1)
     {
-      usleep((uint32_t) (min_desired_sleep - proctime));
+      proctime = min_desired_sleep - (time2 - time1);
+      proctime.sleep();
     }
   }
 }
 
-// Implementation of timediff_usec, taken from kunle12's code on Github
-inline double_t timediff_usec(timespec start, timespec end)
-{
-  if ((end.tv_nsec - start.tv_nsec) < 0) {
-    return (end.tv_sec - start.tv_sec - 1) * 1E6 + (1E9 + end.tv_nsec - start.tv_nsec) / 1E3;
-  }
-  else {
-    return (end.tv_sec - start.tv_sec) * 1E6 + (end.tv_nsec - start.tv_nsec) / 1E3;
-  }
-}
-
 // Implementation of createObjectMessage
-object_detector::ObjectPtr createObjectMessage(darknet_object
-  &detected_object)
+ObjectPtr createObjectMessage(darknet_object &detected_object)
 {
-  object_detector::ObjectPtr msg =
-    boost::make_shared<object_detector::Object>();
+  ObjectPtr msg = boost::make_shared<Object>();
   msg->label = std::string(detected_object.label);
   msg->probability = detected_object.probability;
   msg->centroid_x = detected_object.centroid_x;

@@ -1,4 +1,4 @@
-# Object Detector
+# RAIL Object Detector
 
 ## Two Minute Intro
 
@@ -54,9 +54,9 @@ Three optional test scripts are included in the `scripts` directory (`test_image
 1. Copy some test .jpg images into the `libs/darknet/data` directory.
 1. Run a camera with your favorite ROS camera node.
 1. Launch the `object_detector` node with the image topic of your camera and image queries enabled:
- ```
- roslaunch object_detector detector.launch use_image_service:=true publish_detections_topic:=true image_sub_topic_name:=[camera image here]
- ```
+```
+roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
+```
 1. Run the scene query test script; this should periodically detect and recognize objects in images from your camera:
 ```
 rosrun object_detector test_scene_query.py
@@ -64,6 +64,10 @@ rosrun object_detector test_scene_query.py
 1. Run the image query test script; this should run object recognition on the images you copied into `data`:
 ```
 rosrun object_detector test_image_query.py
+```
+1. Shutdown the previous launch and restart with services disabled but the detections topic enabled:
+```
+roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
 ```
 1. Run the topic test script; this should run object recognition in the backround and print to console the list of objects that were detected along with the timestamp:
 ```
@@ -108,14 +112,15 @@ Wrapper for object detection through ROS services.  Relevant services and parame
 
 ## Startup
 
-Simply run the launch file to bring up all of the package's functionality:
+Simply run the launch file to bring up all of the package's functionality (default: use Scene Queries only):
 ```
-roslaunch object_detector detector.launch
+roslaunch rail_object_detector detector.launch
 ```
 
-## Scope for Improvement
+## Open Issues
 
-1. Use the ROS time API to sleep in the publisher thread so that the sleep can be controlled during simulation.
+1. Scene Query and Publishing the topic don't seem to work well together for some unfathomable reason.
+1. GPU tests have been inconclusive. Need to gather more data.
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
 1. Remove the reliance on absolute file paths in the C code
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal

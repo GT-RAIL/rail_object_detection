@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(object_detector)
+project(rail_object_detector)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -141,14 +141,14 @@ add_custom_target(darknet
 )
 
 ## Declare a C++ library
-add_library(detector
+add_library(rail_object_detector
   src/${PROJECT_NAME}/detector.cpp
 )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(detector
+add_dependencies(rail_object_detector
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
   darknet
@@ -164,18 +164,18 @@ add_executable(detector_node
 add_dependencies(detector_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
-  detector
+  rail_object_detector
 )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(detector
+target_link_libraries(rail_object_detector
   ${catkin_LIBRARIES}
   ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
 )
 
 target_link_libraries(detector_node
   ${catkin_LIBRARIES}
-  detector
+  rail_object_detector
 )
 
 #############

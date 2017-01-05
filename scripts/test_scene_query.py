@@ -5,7 +5,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from object_detector.srv import SceneQuery, SceneQueryRequest, SceneQueryResponse
+from rail_object_detector.srv import SceneQuery, SceneQueryRequest, SceneQueryResponse
 
 COLORS = [(10,10,10), (100,10,10), (200,10,10), (10,100,10), (10,200,10),
 (10,10,100), (10,10,200), (100,100,100), (200,100,100), (100,200,100),
@@ -29,11 +29,12 @@ def main():
 					resp_cv,
 					(obj.left_bot_x, obj.left_bot_y),
 					(obj.right_top_x, obj.right_top_y),
-					COLORS[idx],
+					COLORS[idx%len(COLORS)],
 					3
 				)
 			cv2.imshow('image', resp_cv)
-			cv2.waitKey(300)
+			cv2.waitKey(100)
+                        rospy.loginfo("#objects: %d" % len(resp.objects))
 			rospy.loginfo("objects: %s" % ",".join([x.label for x in resp.objects]))
 		except CvBridgeError:
 			pass

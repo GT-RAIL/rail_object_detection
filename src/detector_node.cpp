@@ -2,9 +2,9 @@
 // Created by banerjs on 12/13/16.
 //
 
-#include "object_detector/detector.h"
+#include "rail_object_detector/detector.h"
 
-using namespace object_detector;
+using namespace rail_object_detector;
 
 int main(int argc, char **argv)
 {

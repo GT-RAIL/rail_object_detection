@@ -7,7 +7,7 @@ import glob
 import rospkg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from object_detector.srv import ImageQuery, ImageQueryRequest, ImageQueryResponse
+from rail_object_detector.srv import ImageQuery, ImageQueryRequest, ImageQueryResponse
 
 COLORS = [(10,10,10), (100,10,10), (200,10,10), (10,100,10), (10,200,10),
 (10,10,100), (10,10,200), (100,100,100), (200,100,100), (100,200,100),
@@ -17,7 +17,7 @@ def main():
 	bridge = CvBridge()
 
 	rospack = rospkg.RosPack()
-	images = glob.glob(rospack.get_path('object_detector') + '/libs/darknet/data/*.jpg')
+	images = glob.glob(rospack.get_path('rail_object_detector') + '/libs/darknet/data/*.jpg')
 	service_proxy = rospy.ServiceProxy('/detector_node/objects_in_image', ImageQuery)
 
 	for image in images:
