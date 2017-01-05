@@ -2,7 +2,7 @@
 
 ## Two Minute Intro
 
-This detector uses darknet to perform object detection. It provides the ability to query for objects in an image through both services as well as from a topic.
+This detector uses [darknet](https://github.com/pjreddie/darknet) to perform object detection. It provides the ability to query for objects in an image through both services as well as from a topic.
 
 The response to all queries contains a list of objects, each of which has the following properties:
 
