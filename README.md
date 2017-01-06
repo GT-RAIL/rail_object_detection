@@ -64,7 +64,7 @@ rosrun object_detector test_scene_query.py
 ```
 rosrun object_detector test_image_query.py
 ```
-1. Shutdown the previous launch and restart with services disabled but the detections topic enabled:
+1. Shutdown the previous launch and restart with services disabled but the detections topic enabled (this is due to an inexplicable bug on CPU mode where the topic and services don't seem to work well together):
 ```
 roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
 ```
@@ -118,8 +118,8 @@ roslaunch rail_object_detector detector.launch
 
 ## Open Issues
 
-1. Scene Query and Publishing the topic don't seem to work well together for some unfathomable reason.
-1. GPU tests have been inconclusive. Need to gather more data.
+1. Scene Query and Publishing the topic don't seem to work well together (on CPU) for some unfathomable reason.
+1. Need to implement an automatic switch between GPU (and perhaps cuDNN) and CPU.
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
 1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
