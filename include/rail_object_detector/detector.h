@@ -22,14 +22,14 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 
-#include "object_detector/Detections.h"
-#include "object_detector/Object.h"
-#include "object_detector/SceneQuery.h"
-#include "object_detector/ImageQuery.h"
+#include "rail_object_detector/Detections.h"
+#include "rail_object_detector/Object.h"
+#include "rail_object_detector/SceneQuery.h"
+#include "rail_object_detector/ImageQuery.h"
 
 #include "detector.h"
 
-namespace object_detector
+namespace rail_object_detector
 {
 
 // Weird requirement to redefine the structures here
@@ -134,14 +134,12 @@ public:
   /**
    * Callback for a scene query
    */
-  bool sceneQueryCallback(object_detector::SceneQuery::Request &req,
-    object_detector::SceneQuery::Response &res);
+  bool sceneQueryCallback(SceneQuery::Request &req, SceneQuery::Response &res);
 
   /**
    * Callback for an image query
    */
-  bool imageQueryCallback(object_detector::ImageQuery::Request &req,
-    object_detector::ImageQuery::Response &res);
+  bool imageQueryCallback(ImageQuery::Request &req, ImageQuery::Response &res);
 
   /**
    * Runnable function that performs detections in the background and
