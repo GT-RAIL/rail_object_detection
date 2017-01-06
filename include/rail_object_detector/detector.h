@@ -6,6 +6,7 @@
 #define SAN_OBJECT_DETECTOR_DETECTOR_NODE_H
 
 #include <string>
+#include <vector>
 #include <time.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -143,9 +144,15 @@ public:
 
   /**
    * Runnable function that performs detections in the background and
-   * publishes them to the detections topic
+   * publishes them to the detections topic. (Callback)
    */
   void runBackgroundDetections();
+
+  /**
+   * Callback function for the background publisher which is called back on a
+   * timer depending on the desired frequency of detections
+   */
+   void backgroundDetectionCallback(const ros::TimerEvent &e);
 
 private:
   // Node Handles to communicate with the param server
@@ -187,6 +194,17 @@ private:
   float probability_threshold_;
   network net_;
   char **class_names_;
+
+  // Private Methods
+
+  /**
+   * Common method that calls the darknet network for the set of objects. The
+   * method takes as arguments an OpenCV image pointer and a reference to a
+   * std::vector that the detected objects can be inserted into. It returns a
+   * status of true if there was no issue in detection; else it returns false.
+   */
+  bool detectObjects(cv_bridge::CvImagePtr cv_ptr, std::vector<Object>
+    &detected_objects);
 };
 
 }

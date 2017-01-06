@@ -53,7 +53,7 @@ bool Detector::start()
                     bool(false));
 
   private_nh_.param("max_desired_publish_freq", max_desired_publish_freq_,
-                    double(1.0));
+                    double(5.0));
 
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
@@ -217,6 +217,41 @@ void Detector::imageSubscriberCallback(
   }
 }
 
+// Implementation of detect objects
+bool Detector::detectObjects(cv_bridge::CvImagePtr cv_ptr,
+  std::vector<Object> &detected_objects)
+{
+  // Create an IplImage and allocate the required variables
+  IplImage ipl_image = (IplImage)cv_ptr->image;
+  darknet_object *darknet_detections;
+  int num_detected_objects = -1;
+
+  // Perform the detection
+  bool detection_success = darknet_detect(&net_, &ipl_image,
+                                          probability_threshold_,
+                                          class_names_, &darknet_detections,
+                                          &num_detected_objects);
+
+  // Check if detection was successful
+  if (!detection_success)
+  {
+    ROS_ERROR("There was a failure during detection");
+    return false;
+  }
+
+  // Insert the detections into the response container
+  for (int i = 0; i < num_detected_objects; i++)
+  {
+    ObjectPtr obj_ptr = createObjectMessage(darknet_detections[i]);
+    detected_objects.push_back(*obj_ptr);
+  }
+
+  // Free resources and return
+  free(darknet_detections);
+
+  return true;
+}
+
 // Implementation of scene query callback
 bool Detector::sceneQueryCallback(SceneQuery::Request &req,
   SceneQuery::Response &res)
@@ -243,32 +278,16 @@ bool Detector::sceneQueryCallback(SceneQuery::Request &req,
   }
 
   // Process the image of the scene
-  IplImage ipl_image = (IplImage)cv_ptr->image;
-  darknet_object *detected_objects;
-  int num_detected_objects;
-  bool detection_success = darknet_detect(&net_, &ipl_image,
-                                          probability_threshold_,
-                                          class_names_, &detected_objects,
-                                          &num_detected_objects);
+  bool detection_success = detectObjects(cv_ptr, res.objects);
   if (!detection_success)
   {
-    ROS_ERROR("There was a failure during detection");
     return false;
   }
 
-  // Convert the data to ROS Message format
+  // Add metadata to the ROS message
   res.image = *(cv_ptr->toImageMsg());
   res.header.frame_id = res.image.header.frame_id;
   res.header.stamp = ros::Time::now();
-
-  for (int i = 0; i < num_detected_objects; i++)
-  {
-    ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
-    res.objects.push_back(*obj_ptr);
-  }
-
-  // Free the resources
-  free(detected_objects);
 
   return true;
 }
@@ -290,16 +309,9 @@ bool Detector::imageQueryCallback(ImageQuery::Request &req,
   }
 
   // Process the image
-  IplImage ipl_image = (IplImage)cv_ptr->image;
-  darknet_object *detected_objects;
-  int num_detected_objects;
-  bool detection_success = darknet_detect(&net_, &ipl_image,
-                                          probability_threshold_,
-                                          class_names_, &detected_objects,
-                                          &num_detected_objects);
+  bool detection_success = detectObjects(cv_ptr, res.objects);
   if (!detection_success)
   {
-    ROS_ERROR("There was a failure during detection");
     return false;
   }
 
@@ -308,97 +320,64 @@ bool Detector::imageQueryCallback(ImageQuery::Request &req,
   res.header.frame_id = res.image.header.frame_id;
   res.header.stamp = ros::Time::now();
 
-  for (int i = 0; i < num_detected_objects; i++)
+  return true;
+}
+
+// Implementation of background detection callback
+void Detector::backgroundDetectionCallback(const ros::TimerEvent &e)
+{
+  cv_bridge::CvImagePtr cv_ptr;
   {
-    ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
-    res.objects.push_back(*obj_ptr);
+    boost::mutex::scoped_lock lock(mutex_);
+    if (latest_image_.get() == NULL)
+    {
+      ROS_INFO_ONCE("No images from camera");
+      return;
+    }
+    try
+    {
+      cv_ptr = cv_bridge::toCvCopy(latest_image_,
+                                   sensor_msgs::image_encodings::RGB8);
+    }
+    catch (const cv_bridge::Exception &ex)
+    {
+      ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
+      return;
+    }
   }
 
-  // Free the resources
-  free(detected_objects);
+  // Perform the detection
+  Detections detections_msg;
+  bool detection_success = detectObjects(cv_ptr, detections_msg.objects);
+  if (!detection_success)
+  {
+    return;
+  }
 
-  return true;
+  // Add the metadata to the image
+  detections_msg.header = cv_ptr->header;
+
+  // Publish the message
+  detections_pub_.publish(detections_msg);
 }
 
 // Implementation of run object detections
 void Detector::runBackgroundDetections()
 {
-  ros::Time time1, time2;
-  ros::Duration proctime;
+  // Setup the timer and callback for performing the detections
   ros::Duration min_desired_sleep = ros::Duration(1/max_desired_publish_freq_);
+  ros::Timer timer = nh_.createTimer(min_desired_sleep,
+                                     &Detector::backgroundDetectionCallback,
+                                     this);
 
   while (perform_detections_)
   {
-    cv_bridge::CvImagePtr cv_ptr;
-    time1 = ros::Time::now();
-    bool image_is_valid = false;
-    {
-      boost::mutex::scoped_lock lock(mutex_);
-      if (latest_image_.get() == NULL)
-      {
-        ROS_INFO_ONCE("No images from camera");
-      }
-      else
-      {
-        try
-        {
-          cv_ptr = cv_bridge::toCvCopy(latest_image_,
-                                       sensor_msgs::image_encodings::RGB8);
-          image_is_valid = true;
-        }
-        catch (const cv_bridge::Exception &ex)
-        {
-          ROS_ERROR("Unable to convert image message to mat: %s", ex.what());
-        }
-      }
-    }
-
-    // Loop if the image is not valid
-    if (!image_is_valid)
-    {
-      time2 = ros::Time::now();
-      if (min_desired_sleep > time2-time1)
-      {
-        proctime = min_desired_sleep - (time2 - time1);
-        proctime.sleep();
-      }
-      continue;
-    }
-
-    // Process the fetched image
-    IplImage ipl_image = (IplImage)cv_ptr->image;
-    darknet_object *detected_objects;
-    int num_detected_objects;
-    bool detection_success = darknet_detect(&net_, &ipl_image,
-                                            probability_threshold_,
-                                            class_names_, &detected_objects,
-                                            &num_detected_objects);
-    if (!detection_success)
-    {
-      ROS_ERROR("There was a failure during detection");
-      continue;
-    }
-
-    // Create the detections message and push back the data onto it
-    Detections detections_msg;
-    detections_msg.header = cv_ptr->header;
-    for (int i = 0; i < num_detected_objects; i++)
-    {
-      ObjectPtr obj_ptr = createObjectMessage(detected_objects[i]);
-      detections_msg.objects.push_back(*obj_ptr);
-    }
-
-    // Publish the data on the topic
-    detections_pub_.publish(detections_msg);
-
-    // Sleep the appropriate amount
-    time2 = ros::Time::now();
-    if (min_desired_sleep > time2-time1)
-    {
-      proctime = min_desired_sleep - (time2 - time1);
-      proctime.sleep();
-    }
+    // Essentially doing a ros::spin() but we want to exit when the
+    // perform_detections_ boolean is unset
+    ros::spinOnce();
   }
+
+  timer.stop();
 }
 
 // Implementation of createObjectMessage
