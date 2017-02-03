@@ -2,8 +2,8 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2017-02-03)
+------------------
 * Completed the build of GPU with flags
 * Pushing fixes in master back to gpu_devel. Merge branch 'master' into gpu_devel
 * Updated the README. Unfortunately, the mangling of data between publisher and service still exists and I cannot get rid of it
