@@ -1,0 +1,30 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package rail_object_detector
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* Completed the build of GPU with flags
+* Pushing fixes in master back to gpu_devel. Merge branch 'master' into gpu_devel
+* Updated the README. Unfortunately, the mangling of data between publisher and service still exists and I cannot get rid of it
+* Fixed timing bugs with the object detector and possibly even the bug between service and topic contention. Need to test
+* Merging updates on master into the GPU branch
+* Created and Tested install of the package
+* Removed the need to update internal config file values
+* Returning defaults
+* Changed naming for a public release.
+* Testing out GPU functionality
+* Adding in a gitignore
+* Updated the detector to also use a topic for publishing object detections
+* removed unused parameters
+* removed service name parameter
+* Updated path in test script to use package-based absolute path
+* package-location-based absolute paths for ros params, minor cleanup and debugging, documentation
+* Adding in the cfg and data folders
+* Completed final details on object detection. Delivering project for now
+* Cursory stress test of the node is complete
+* Finally done with a functioning prototype of the object detector
+* Successful linkage of C++ with C
+* Completed ROS Skeleton for the detector
+* Initial commit of the object detector
+* Contributors: David Kent, Siddhartha Banerjee
