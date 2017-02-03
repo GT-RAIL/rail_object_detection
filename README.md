@@ -37,6 +37,7 @@ The interval for grabbing images is specified in the form of a frequency. If the
  * [Testing your Installation](#testing-your-installation)
  * [ROS Nodes](#ros-nodes)
  * [Startup](#startup)
+ * [Building with CUDA](#building-with-cuda)
  * [Scope for Improvement](#scope-for-improvement)
 
 ## Installation
@@ -50,27 +51,27 @@ The interval for grabbing images is specified in the form of a frequency. If the
 
 Three optional test scripts are included in the `scripts` directory (`test_image_query.py`, `test_scene_query.py`, and `test_detections_topic.py`).  To test your installation, do the following:
 
-1. Copy some test .jpg images into the `libs/darknet/data` directory.
-1. Run a camera with your favorite ROS camera node.
-1. Launch the `object_detector` node with the image topic of your camera and image queries enabled:
+- Copy some test .jpg images into the `libs/darknet/data` directory.
+- Run a camera with your favorite ROS camera node.
+- Launch the `detector_node` node with the image topic of your camera and image queries enabled:
+```
+roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]`
+```
+- Run the scene query test script; this should periodically detect and recognize objects in images from your camera:
+```
+rosrun rail_object_detector test_scene_query.py
+```
+- Run the image query test script; this should run object recognition on the images you copied into `data`:
+```
+rosrun rail_object_detector test_image_query.py
+```
+- Shutdown the previous launch and restart with services disabled but the detections topic enabled (this is due to an inexplicable bug on CPU mode where the topic and services don't seem to work well together):
 ```
 roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
 ```
-1. Run the scene query test script; this should periodically detect and recognize objects in images from your camera:
+- Run the topic test script; this should run object recognition in the backround and print to console the list of objects that were detected along with the timestamp:
 ```
-rosrun object_detector test_scene_query.py
-```
-1. Run the image query test script; this should run object recognition on the images you copied into `data`:
-```
-rosrun object_detector test_image_query.py
-```
-1. Shutdown the previous launch and restart with services disabled but the detections topic enabled (this is due to an inexplicable bug on CPU mode where the topic and services don't seem to work well together):
-```
-roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
-```
-1. Run the topic test script; this should run object recognition in the backround and print to console the list of objects that were detected along with the timestamp:
-```
-rosrun object_detector test_detections_topic.py
+rosrun rail_object_detector test_detections_topic.py
 ```
 
 ## ROS Nodes
@@ -116,10 +117,25 @@ Simply run the launch file to bring up all of the package's functionality (defau
 roslaunch rail_object_detector detector.launch
 ```
 
-## Open Issues
+## Building with CUDA
 
-1. Scene Query and Publishing the topic don't seem to work well together (on CPU) for some unfathomable reason.
-1. Need to implement an automatic switch between GPU (and perhaps cuDNN) and CPU.
+Darknet can be built with CUDA support to provide &gt;10x speedup in object detection. The compilation flags `DARKNET_GPU` and `DARKNET_GPU_ARCH` can be used to enable this.
+
+**Make sure you have cleaned out any previous darknet builds by running `make clean` in the directory `rail_object_detector/libs/darknet` before attempting to build with CUDA support**
+
+```
+catkin_make -DDARKNET_GPU=1 -DDARKNET_GPU_ARCH=compute_52
+```
+
+Explanation of flags:
+
+1. `DARKNET_GPU`: Set to 1 in order to enable GPU. Any other value disables it
+1. `DARKNET_GPU_ARCH`: Set to the compute capability of your CUDA enabled GPU. You can look this up on [Wikipedia](https://en.wikipedia.org/wiki/CUDA#GPUs_supported)
+
+## Scope for Improvement
+
+1. Scene Query and Publishing the topic don't seem to work well together for some unfathomable reason.
+1. Cleaning build artifacts `catkin_make clean` does not cleanup darknet build artifacts.
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
 1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.

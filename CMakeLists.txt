@@ -73,9 +73,20 @@ include_directories(
   libs/darknet/src
 )
 
+# Add the definitions for darknet
+if(CMAKE_BUILD_TYPE MATCHES Debug|DEBUG|debug OR NOT CMAKE_BUILD_TYPE)
+  set(DARKNET_DEBUG 1 CACHE INTERNAL "")
+else()
+  set(DARKNET_DEBUG 0 CACHE INTERNAL "")
+endif()
+
+if(DARKNET_GPU EQUAL 1 AND DEFINED DARKNET_GPU_ARCH)
+  add_definitions(-DGPU=1)
+endif()
+
 ## Declare the C based darknet library
-add_custom_target(darknet
-  COMMAND make library
+add_custom_target(darknet ALL
+  COMMAND GPU=${DARKNET_GPU} DEBUG=${DARKNET_DEBUG} GPU_ARCH=${DARKNET_GPU_ARCH} make library
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/darknet
 )
 
@@ -107,10 +118,22 @@ add_dependencies(detector_node
 )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(rail_object_detector
-  ${catkin_LIBRARIES}
-  ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
-)
+if(DARKNET_GPU EQUAL 1 AND DEFINED DARKNET_GPU_ARCH)
+  target_link_libraries(rail_object_detector
+    ${catkin_LIBRARIES}
+    ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
+    -L/usr/local/cuda/lib64
+    -lcuda
+    -lcudart
+    -lcublas
+    -lcurand
+  )
+else()
+  target_link_libraries(rail_object_detector
+    ${catkin_LIBRARIES}
+    ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
+  )
+endif()
 
 target_link_libraries(detector_node
   ${catkin_LIBRARIES}

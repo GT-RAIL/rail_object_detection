@@ -1,9 +1,14 @@
-GPU=0
+# GPU is defined in CMakeLists
 CUDNN=0
 OPENCV=1
-DEBUG=0
+# DEBUG is defined in CMakeLists
+# GPU_ARCH is defined in CMakeLists
 
-ARCH= --gpu-architecture=compute_52 --gpu-code=compute_52
+ifdef GPU_ARCH
+ARCH= --gpu-architecture=$(GPU_ARCH) --gpu-code=$(GPU_ARCH)
+else
+GPU=0
+endif
 
 VPATH=./src/
 EXEC=darknet
