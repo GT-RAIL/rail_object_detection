@@ -65,7 +65,7 @@ rosrun rail_object_detector test_scene_query.py
 ```
 rosrun rail_object_detector test_image_query.py
 ```
-- Shutdown the previous launch and restart with services disabled but the detections topic enabled:
+- Shutdown the previous launch and restart with services disabled but the detections topic enabled (this is due to an inexplicable bug on CPU mode where the topic and services don't seem to work well together):
 ```
 roslaunch rail_object_detector detector.launch use_image_service:=true image_sub_topic_name:=[camera image here]
 ```
