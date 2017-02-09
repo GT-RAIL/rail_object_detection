@@ -165,7 +165,7 @@ private:
   bool publish_detections_topic_;
 
   // Parameters for the abilities, such as publish frequencies, etc.
-  double_t max_desired_publish_freq_;
+  float max_desired_publish_freq_;
 
   // Publishers, Subscribers, and Service Servers
   image_transport::ImageTransport it_;

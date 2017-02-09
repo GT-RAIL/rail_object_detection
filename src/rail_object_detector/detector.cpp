@@ -52,9 +52,8 @@ bool Detector::start()
   private_nh_.param("publish_detections_topic", publish_detections_topic_,
                     bool(false));
 
-  double_t max_desired_publish_freq_default = 5.0;
   private_nh_.param("max_desired_publish_freq", max_desired_publish_freq_,
-                    max_desired_publish_freq_default);
+                    float(5.0));
 
   private_nh_.param("image_sub_topic_name", image_sub_topic_name, std::string
     ("/kinect/hd/image_color_rect"));
