@@ -2,7 +2,13 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.0.1 (2017-02-03)
+Forthcoming
+-----------
+* Adding in base travis build
+* Fixed the 32-bit compile error, hopefully
+* Contributors: Siddhartha Banerjee
+
+1.0.2 (2017-02-03)
 ------------------
 * Completed the build of GPU with flags
 * Pushing fixes in master back to gpu_devel. Merge branch 'master' into gpu_devel
