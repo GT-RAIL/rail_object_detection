@@ -2,8 +2,8 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.3 (2017-02-09)
+------------------
 * Adding in base travis build
 * Fixed the 32-bit compile error, hopefully
 * Contributors: Siddhartha Banerjee
