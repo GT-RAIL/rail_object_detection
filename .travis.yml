@@ -93,7 +93,6 @@ install:
 before_script:
   # source dependencies: install using wstool.
   - cd ~/catkin_ws/src
-  - git clone https://github.com/GT-RAIL/rail_object_detector.git
   - wstool init
   - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
   - wstool up
