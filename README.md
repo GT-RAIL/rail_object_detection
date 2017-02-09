@@ -1,5 +1,7 @@
 # RAIL Object Detector
 
+[![Build Status](https://travis-ci.org/GT-RAIL/rail_object_detector.svg?branch=master)](https://travis-ci.org/GT-RAIL/rail_object_detector)
+
 ## Two Minute Intro
 
 This detector uses [darknet](https://github.com/pjreddie/darknet) to perform object detection. It provides the ability to query for objects in an image through both services as well as from a topic.
