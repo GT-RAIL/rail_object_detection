@@ -2,6 +2,11 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Adding in an automatic build for 32 bit
+* Contributors: Siddhartha Banerjee, banerjs
+
 1.0.3 (2017-02-09)
 ------------------
 * Adding in base travis build
