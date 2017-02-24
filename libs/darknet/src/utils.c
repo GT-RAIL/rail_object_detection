@@ -535,8 +535,6 @@ int max_index_selective(float *a, int n, char** classes)
         int * found = strstr(san_class_str, classes[i]);
         if (found!=NULL){
             if(a[i] > max){
-                printf(classes[i]);
-                printf("\n");
                 max = a[i];
                 max_i = i;
             }
