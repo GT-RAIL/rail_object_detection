@@ -60,7 +60,7 @@ bool darknet_detect(network *net, IplImage *ipl, float thresh,
   int i;
   for (i = 0; i < dimensions; i++)
   {
-    int class = max_index(probs[i], l.classes);
+    int class = max_index_selective(probs[i], l.classes, class_names);
     float prob = probs[i][class];
     if (prob > thresh)
     {

@@ -9,6 +9,8 @@
 
 #include "utils.h"
 
+static const char* san_class_str = "apple banana book bottle bowl broccoli cake carrot chair clock couch cup donut fork wine glass knife laptop microwave orange oven cell phone pizza pottedplant refrigerator sandwich sink spoon diningtable toaster tvmonitor vase";
+
 int *read_map(char *filename)
 {
     int n = 0;
@@ -522,6 +524,27 @@ int sample_array(float *a, int n)
         if (r <= 0) return i;
     }
     return n-1;
+}
+
+int max_index_selective(float *a, int n, char** classes)
+{
+    if(n <= 0) return -1;
+    int i, max_i = 0;
+    float max = a[0];
+    for(i = 1; i < n; ++i){
+        int * found = strstr(san_class_str, classes[i]);
+        if (found!=NULL){
+            if(a[i] > max){
+                printf(classes[i]);
+                printf("\n");
+                max = a[i];
+                max_i = i;
+            }
+        } else {
+            //fprintf(stdout, "Skipped: %s\n", classes[i]);
+        }
+    }
+    return max_i;
 }
 
 int max_index(float *a, int n)
