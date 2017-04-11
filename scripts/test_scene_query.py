@@ -47,7 +47,7 @@ def main():
 					print start_y
 					print end_y
 					new_img = resp_cv[start_x:end_x, start_y:end_y]
-					person_images.append([width, height, start_x, end_x, start_y, end_y])
+					person_images.append(new_img)
 
 			cv2.imshow('image', resp_cv)
 			for image in person_images:

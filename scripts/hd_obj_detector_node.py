@@ -79,8 +79,8 @@ class HDObjDetector(object):
 				height = obj.left_bot_y - obj.right_top_y
 				start_x = max(obj.left_bot_x - width/2, 0)
 				start_y = max(obj.right_top_y - height/2, 0)
-				end_x = min(obj.right_top_x + width/2, len(cv_image))
-				end_y = min(obj.left_bot_y +height/2, len(cv_image[0]))
+				end_x = min(obj.right_top_x + width/2, len(cv_image[0]))
+				end_y = min(obj.left_bot_y +height/2, len(cv_image))
 				new_img = cv_image[start_y:end_y, start_x:end_x]
 				person_images.append(new_img)
 				person_image_offset_x.append(start_x)
@@ -97,6 +97,11 @@ class HDObjDetector(object):
 				if obj.label.strip() != "person":
 					obj.left_bot_x += person_image_offset_x[index]
 					obj.right_top_y += person_image_offset_y[index]
+					# Checks for Darknet overflow madness
+					if obj.left_bot_x > 2000 or obj.right_top_y > 2000:
+						continue
+					obj.left_bot_x = min(obj.left_bot_x, len(cv_image[0]))
+					obj.right_top_y = min(obj.right_top_y, len(cv_image))
 					hd_detections.objects.append(obj)
 		self.detections_pub.publish(hd_detections)
 

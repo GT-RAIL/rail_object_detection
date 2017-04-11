@@ -5,7 +5,7 @@
 
 	<!-- Image Topics of interest -->
 	<arg name="image_topic_name" default="/kinect/hd/image_color_rect" />
-	<arg name="point_cloud_topic_name" default="/kinect/qhd/points" />
+	<arg name="point_cloud_topic_name" default="/kinect/hd/points" />
 	<arg name="point_cloud_tf_frame" default="kinect_rgb_optical_frame" />
 
 	<!-- RAIL Object Detector -->
@@ -34,7 +34,7 @@
 	</node>
 
 	<!-- Start the person detector -->
-	<node name="$(arg person_detector_name)" pkg="rail_person_detector" type="detector_node" clear_params="true" >
+	<node name="$(arg person_detector_name)" pkg="rail_person_detector" type="detector_node" clear_params="true" output="screen">
 		<param name="kinect_pcl_topic" value="$(arg point_cloud_topic_name)" />
 		<param name="kinect_pcl_frame" value="$(arg point_cloud_tf_frame)" />
 		<param name="object_detector_topic" value="$(arg object_detector_detections)" />
