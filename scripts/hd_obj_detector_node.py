@@ -96,7 +96,9 @@ class HDObjDetector(object):
 			for idx,obj in enumerate(cropped_resp.objects):
 				if obj.label.strip() != "person":
 					obj.left_bot_x += person_image_offset_x[index]
+					obj.right_top_x += person_image_offset_x[index]
 					obj.right_top_y += person_image_offset_y[index]
+					obj.left_bot_y += person_image_offset_y[index]
 					# Checks for Darknet overflow madness
 					if obj.left_bot_x > 2000 or obj.right_top_y > 2000:
 						continue
