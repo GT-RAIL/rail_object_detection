@@ -9,7 +9,8 @@
 
 #include "utils.h"
 
-static const char* san_class_str = "apple banana book bottle bowl broccoli cake carrot chair clock couch cup donut fork wine glass knife laptop microwave orange oven cell phone pizza pottedplant refrigerator sandwich sink spoon diningtable toaster tvmonitor vase";
+// static const char* san_class_str = "apple banana book bottle bowl broccoli cake carrot chair clock couch cup donut fork wine glass knife laptop microwave orange oven cell phone pizza pottedplant refrigerator sandwich sink spoon diningtable toaster tvmonitor vase";
+static const char* san_class_str = "apple banana book bottle bowl cake carrot cup donut wine glass knife laptop orange cell phone pizza sandwich";
 
 int *read_map(char *filename)
 {

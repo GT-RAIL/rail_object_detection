@@ -1,0 +1,48 @@
+<launch>
+	<!-- Node names -->
+	<arg name="darknet_detector_name" default="darknet_detector" />
+	<arg name="person_detector_name" default="person_detector" />
+
+	<!-- Image Topics of interest -->
+	<arg name="image_topic_name" default="/kinect/hd/image_color_rect" />
+	<arg name="point_cloud_topic_name" default="/kinect/qhd/points" />
+	<arg name="point_cloud_tf_frame" default="kinect_rgb_optical_frame" />
+
+	<!-- RAIL Object Detector -->
+	<arg name="darknet_desired_publish_freq" default="10.0" />
+	<arg name="darknet_probability_threshold" default="0.25" />
+	<arg name="darknet_classnames_filename" default="$(find rail_object_detector)/libs/darknet/data/coco.names" />
+	<arg name="darknet_cfg_filename" default="$(find rail_object_detector)/libs/darknet/cfg/yolo.cfg" />
+	<arg name="darknet_weight_filename" default="$(find rail_object_detector)/libs/darknet/yolo.weights" />
+
+	<!-- RAIL Person Detector -->
+	<arg name="object_detector_detections" default="$(arg darknet_detector_name)/detections" />
+	<arg name="desired_person_tf_frame" default="base_link" />
+
+
+	<!-- Start the darknet detector -->
+	<node name="$(arg darknet_detector_name)" pkg="rail_object_detector" type="detector_node" clear_params="true">
+		<param name="use_scene_service" value="false" />
+		<param name="use_image_service" value="true" />
+		<param name="publish_detections_topic" value="true" />
+		<param name="image_sub_topic_name" value="$(arg image_topic_name)" />
+		<param name="max_desired_publish_freq" value="$(arg darknet_desired_publish_freq)" />
+		<param name="probability_threshold" value="$(arg darknet_probability_threshold)" />
+		<param name="classnames_filename" value="$(arg darknet_classnames_filename)" />
+		<param name="cfg_filename" value="$(arg darknet_cfg_filename)" />
+		<param name="weight_filename" value="$(arg darknet_weight_filename)" />
+	</node>
+
+	<!-- Start the person detector -->
+	<node name="$(arg person_detector_name)" pkg="rail_person_detector" type="detector_node" clear_params="true" >
+		<param name="kinect_pcl_topic" value="$(arg point_cloud_topic_name)" />
+		<param name="kinect_pcl_frame" value="$(arg point_cloud_tf_frame)" />
+		<param name="object_detector_topic" value="$(arg object_detector_detections)" />
+		<param name="desired_position_frame" value="$(arg desired_person_tf_frame)" />
+	</node>
+	<node pkg="rail_object_detector" type="hd_obj_detector_node.py" name="hd_obj_detector_node" output="screen">
+		<param name="image_sub_topic_name" type="string" value="$(arg image_topic_name)" />
+		<param name="detections_topic_name" value="/person_detector/people" />
+	</node>
+
+</launch>
