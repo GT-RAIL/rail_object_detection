@@ -6,6 +6,7 @@ import rospy
 import cv2
 import glob
 import rospkg
+import threading
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from rail_object_detector.srv import ImageQuery, ImageQueryRequest, ImageQueryResponse
@@ -35,43 +36,53 @@ class HDObjDetector(object):
 
 	def __init__(self):
 		rospy.init_node('hd_obj_detector_node')
+		self.last_image_lock = threading.Lock()
 		self.last_image = None
 		self.bridge = CvBridge()
 		self.image_sub_topic_name = rospy.get_param('~image_sub_topic_name', default='/kinect/hd/image_color_rect')
 		self.detections_topic_name = rospy.get_param('~detections_topic_name', default='/person_detector/people')
-		self.service_proxy = rospy.ServiceProxy('/darknet_detector/objects_in_image', ImageQuery)
+
+		query_service_name = rospy.get_param('~image_query_service_name', default='/darknet_detector/objects_in_image')
+		self.service_proxy = rospy.ServiceProxy(query_service_name, ImageQuery)
 
 
-	def _draw_bb(self, image, bounding_box, color):
-		start_x = bounding_box['x']
-		start_y = bounding_box['y']
-		end_x = start_x + bounding_box['w']
-		end_y = start_y + bounding_box['h']
-		cv2.rectangle(image,
-					  (start_x, start_y),
-					  (end_x, end_y),
-					  color=color,
-					  thickness=3)
-		return image
+	# def _draw_bb(self, image, bounding_box, color):
+	# 	start_x = bounding_box['x']
+	# 	start_y = bounding_box['y']
+	# 	end_x = start_x + bounding_box['w']
+	# 	end_y = start_y + bounding_box['h']
+	# 	cv2.rectangle(image,
+	# 				  (start_x, start_y),
+	# 				  (end_x, end_y),
+	# 				  color=color,
+	# 				  thickness=3)
+	# 	return image
 
 	def _save_incoming_image(self, image_msg):
-		self.last_image = image_msg
+		if self.last_image_lock.acquire(False):
+			self.last_image = image_msg
+			self.last_image_lock.release()
 
 	def _check_for_hd_objects(self, detections_msg):
 		## TODO: This shouldn't have to check label. I should just subscribe to the people detections node which is ???
+		hd_detections = Detections()
+		self.last_image_lock.acquire()
 		if self.last_image is None:
+			self.last_image_lock.release()
 			return
 		if len(detections_msg.people) <= 0:
+			self.last_image_lock.release()
 			return
 		## Convert last received image into cv2
 		cv_image = self.bridge.imgmsg_to_cv2(self.last_image, "bgr8")
+		hd_detections.header = self.last_image.header
+		self.last_image_lock.release()
+
 		person_images = []
 		# hideous hack because i am tired and hungry don't judge me
 		person_image_offset_x = []
 		person_image_offset_y = []
 		## TODO make this detections object the right message type
-		hd_detections = Detections()
-		hd_detections.header = self.last_image.header
 		# For each person, crop a bounding box
 		for obj in detections_msg.people:
 				obj = obj.bounding_box
@@ -104,11 +115,13 @@ class HDObjDetector(object):
 						continue
 					obj.left_bot_x = min(obj.left_bot_x, len(cv_image[0]))
 					obj.right_top_y = min(obj.right_top_y, len(cv_image))
+					obj.centroid_x = (obj.left_bot_x + obj.right_top_x)/2
+					obj.centroid_y = (obj.left_bot_y + obj.right_top_y)/2
 					hd_detections.objects.append(obj)
 		self.detections_pub.publish(hd_detections)
 
 	def run(self,
-			pub_detections_topic='/hd_obj_detector/objects'):
+			pub_detections_topic='~objects'):
 		rospy.Subscriber(self.image_sub_topic_name, Image, self._save_incoming_image) # subscribe to sub_image_topic and callback save image
 		rospy.Subscriber(self.detections_topic_name, People, self._check_for_hd_objects) # subscribe to detections and callback look for hd objs
 		self.detections_pub = rospy.Publisher(pub_detections_topic, Detections, queue_size=2) # detections publisher
