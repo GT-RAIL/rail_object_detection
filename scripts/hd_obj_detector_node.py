@@ -86,12 +86,12 @@ class HDObjDetector(object):
 		# For each person, crop a bounding box
 		for obj in detections_msg.people:
 				obj = obj.bounding_box
-				width = obj.right_top_x - obj.left_bot_x
-				height = obj.left_bot_y - obj.right_top_y
-				start_x = max(obj.left_bot_x - width/2, 0)
-				start_y = max(obj.right_top_y - height/2, 0)
-				end_x = min(obj.right_top_x + width/2, len(cv_image[0]))
-				end_y = min(obj.left_bot_y +height/2, len(cv_image))
+				width = obj.right_top_x*2 - obj.left_bot_x*2
+				height = obj.left_bot_y*2 - obj.right_top_y*2
+				start_x = max(obj.left_bot_x*2 - width, 0)
+				start_y = max(obj.right_top_y*2 - height, 0)
+				end_x = min(obj.right_top_x*2 + width, len(cv_image[0]))
+				end_y = min(obj.left_bot_y*2 + height, len(cv_image))
 				new_img = cv_image[start_y:end_y, start_x:end_x]
 				person_images.append(new_img)
 				person_image_offset_x.append(start_x)
