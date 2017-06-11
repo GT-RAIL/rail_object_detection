@@ -4,7 +4,7 @@
 
 ## Temporary Warning
 
-The system will not work using the weights from the server.
+The system will not work using the weights from darknet. Please use the weights [here](https://drive.google.com/file/d/0B4jFwTFPtfejVUloYjU2LUpKUVk/view?usp=sharing) in the meanwhile
 
 ## Two Minute Intro
 
