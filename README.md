@@ -87,12 +87,12 @@ rosrun rail_object_detector test_detections_topic.py
 Wrapper for object detection through ROS services.  Relevant services and parameters are as follows:
 
 * **Services**
-  * `detector_node/objects_in_scene` ([object_detector/SceneQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/SceneQuery.srv))
+  * `detector_node/objects_in_scene` ([object_detector/SceneQuery](srv/SceneQuery.srv))
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Scene Query service: recognize objects in the latest image from the camera stream `image_sub_topic_name`.  Takes no input, and outputs a list of detected, labeled objects and a corresponding image.  Only advertised if `use_scene_service` is true.
-  * `detector_node/objects_in_image` ([object_detector/ImageQuery](https://github.com/gt-rail-internal/SAN/blob/master/object_detector/srv/ImageQuery.srv))
+  * `detector_node/objects_in_image` ([object_detector/ImageQuery](srv/ImageQuery.srv))
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Image Query service: recognize objects in an image passed to the service.  Takes an image as input, and outputs a list of detected, labeled objects and a corresponding image. Only advertised if `use_image_service` is true.
 * **Topics**
-  * `detector_node/detections` ([object_detector/Detections](https://github.com/gt-rail-internal/SAN/tree/master/object_detector/msg/Detections.msg))
+  * `detector_node/detections` ([object_detector/Detections](msg/Detections.msg))
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections performed in the background by grabbing images at a specified interval. Only advertised if `publish_detections_topic` is true.
 * **Parameters**
   * `num_service_threads` (`int`, default: 0)
