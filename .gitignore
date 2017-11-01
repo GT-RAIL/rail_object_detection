@@ -129,3 +129,6 @@ ipch/
 
 # TFS 2012 Local Workspace
 $tf/
+
+# Model parameter files
+*.params
