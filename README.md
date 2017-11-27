@@ -1,11 +1,5 @@
 # RAIL Object Detector
 
-[![Build Status](https://travis-ci.org/GT-RAIL/rail_object_detector.svg?branch=master)](https://travis-ci.org/GT-RAIL/rail_object_detector)
-
-## Temporary Warning
-
-The system will not work using the weights from darknet. Please use the weights [here](https://drive.google.com/file/d/0B4jFwTFPtfejVUloYjU2LUpKUVk/view?usp=sharing) in the meanwhile
-
 ## Two Minute Intro
 
 This detector uses [Deformable R-FCN](https://github.com/msracver/Deformable-ConvNets) to perform object detection. It provides the ability to query for objects in an image through a topic.
@@ -23,7 +17,7 @@ The response to all queries contains a list of objects, each of which has the fo
 
 #### Fetching Object Detections
 
-IThe detector subscribes to an existing camera sensor topic and grabs images from this camera at predetermined intervals. After performing object detection on the grabbed image, the detector publishes the list of objects that were found to the query topic, and re-uses the header of the input image.
+The detector subscribes to an existing camera sensor topic and grabs images from this camera at predetermined intervals. After performing object detection on the grabbed image, the detector publishes the list of objects that were found to the query topic, and re-uses the header of the input image.
 
 The interval for grabbing images is specified in the form of a frequency. If the desired frequency exceeds the maximum frequency of operation of the detector (~1 Hz on CPU, ~4 Hz on Titan X), we limit to the maximum frequency of operation.
 
