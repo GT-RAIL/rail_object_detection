@@ -39,6 +39,7 @@ Below is a list of python libraries that are required for the Deformable RFCN ne
  * mxnet-cu80==0.12.0b20171027
  * Pillow
  * pyyaml
+ 
 Note that the version of MXNet is the same as in the Deformable ConvNets repo. You may change the version if your setup requires something different, but it may not work properly.
 
 ## Installation
