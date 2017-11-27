@@ -1,11 +1,10 @@
 <launch>
 	<arg name="image_sub_topic_name" default="/kinect/qhd/image_color_rect" />
-	<arg name="debug" default="false" />
-	<arg name="use_compressed_image" default="false" />
+	<arg name="debug" default="true" />
 
+    <node pkg="rail_object_detector" type="demo_pub.py" name="image_pubber" output="screen" />
 	<node pkg="rail_object_detector" type="detector_node.py" name="rail_detector_node">
 		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
 		<param name="debug" type="bool" value="$(arg debug)" />
-		<param name="use_compressed_image" type="bool" value="$(arg use_compressed_image)" />
 	</node>
 </launch>
