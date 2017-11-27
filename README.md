@@ -22,12 +22,24 @@ The detector subscribes to an existing camera sensor topic and grabs images from
 The interval for grabbing images is specified in the form of a frequency. If the desired frequency exceeds the maximum frequency of operation of the detector (~1 Hz on CPU, ~4 Hz on Titan X), we limit to the maximum frequency of operation.
 
 ## Menu
+ * [Requirements](#requirements)
  * [Installation](#installation)
  * [Testing your Installation](#testing-your-installation)
  * [ROS Nodes](#ros-nodes)
  * [Startup](#startup)
  * [Building with CUDA](#building-with-cuda)
  * [Scope for Improvement](#scope-for-improvement)
+
+## Requirements
+
+Below is a list of python libraries that are required for the Deformable RFCN network in MXNet to work:
+ * Cython
+ * EasyDict
+ * opencv-python
+ * mxnet-cu80==0.12.0b20171027
+ * Pillow
+ * pyyaml
+Note that the version of MXNet is the same as in the Deformable ConvNets repo. You may change the version if your setup requires something different, but it may not work properly.
 
 ## Installation
 
