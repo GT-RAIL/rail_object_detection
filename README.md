@@ -47,8 +47,7 @@ Note that the version of MXNet is the same as in the Deformable ConvNets repo. Y
 1. Put this package into your workspace
 1. Navigate to the top level of this package (where this README is located)
 1. run `sh init.sh`
-1. Navigate to the subdirectory: `libs/model` within this package
-1. Download the model parameters from: (get them from me until we figure out a place to host them)
+1. Download the model parameters from [this Dropbox link](https://www.dropbox.com/s/b5n215zidzqaxft/rfcn_dcn_coco-0000.params?dl=0) and move them into the `libs/model` subdirectory of this package.
 1. Run `catkin_make` and enjoy the ability to use object detection! (If you need to update the file paths, use absolute paths!)
 
 ## Testing your Installation
