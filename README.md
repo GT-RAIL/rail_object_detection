@@ -57,21 +57,24 @@ pip install -r requirements.txt
 
 ## Testing your Installation
 
-There is a testing launch file and script to make sure you have everything together and running smoothly. To begin, edit line 12 of `scripts/demo_pub.py` and point the absolute path to an image on your machine. Then run:
+There is a testing launch file and script to make sure you have everything together and running smoothly. First, add some `.jpg` images to `rail_object_detector/libs/darknet/data`. Then run:
 ```
 roslaunch rail_object_detector def_detector_demo.launch
 ```
 In a separate terminal, run:
 ```
-rosrun image_view image_view image:=/rail_object_detector/debug/object_image
+rosrun image_view image_view image:=/rail_detector_node/debug/object_image
 ```
-and you will see the image you pointed to with detected objects highlighted and labeled.
+and you will see the image you pointed to with detected objects highlighted and labeled. You can also launch the demo node with a publish rate parameter, which slows or speeds up the cycling of images in the `libs/darknet/data` directory. For example, to publish at 0.5 Hz I could run:
+```
+roslaunch rail_object_detector def_detector_demo.launch rate:=0.5
+```
 
-Otherwise, you can run a camera with whichever ROS camera node you would like, and launch the 
-- Run a camera with your favorite ROS camera node.
-- Launch the `detector_node` node with the image topic of your camera and debug mode enabled:
+Otherwise, you can run a camera with whichever ROS camera node you would like.  
+1. Run a camera with your favorite ROS camera node.
+1. Launch the `detector_node` node with the image topic of your camera and debug mode enabled:
 ```
-roslaunch rail_object_detector def_detector.launch image_sub_topic_name:=[camera image here] debug:=true`
+roslaunch rail_object_detector def_detector.launch image_sub_topic_name:=[camera topic here] debug:=true`
 ```
 Once again, in a separate terminal, run:
 ```
@@ -105,8 +108,15 @@ roslaunch rail_object_detector def_detector.launch
 
 ## Scope for Improvement
 
-1. Change max image sizes to speed things up
-1. Find other ways to speed things up
+There are a few ways to improve this package which we haven't yet tackled. Namely:
+
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
 1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
+
+The immediately TODO list includes:
+- [x] Create a demo publisher to cycle through images
+- [x] Remove absolute paths
+- [ ] Move `libs/darknet/data` to `libs/data` for clarity / ubiquity
+- [ ] Add a service call for the deformable convnets
+- [ ] Remove the need to run `sh init.sh`
