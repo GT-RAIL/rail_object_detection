@@ -65,7 +65,14 @@ In a separate terminal, run:
 ```
 rosrun image_view image_view image:=/rail_detector_node/debug/object_image
 ```
-and you will see the image you pointed to with detected objects highlighted and labeled. You can also launch the demo node with a publish rate parameter, which slows or speeds up the cycling of images in the `libs/darknet/data` directory. For example, to publish at 0.5 Hz I could run:
+and you will see the image you pointed to with detected objects highlighted and labeled. It should look something like this:
+
+![Visualization of the object detector](objects.gif)
+
+Colors change with each new detection of the object, and note that there is no tracking or propagation of labels (as on the couch in the gif above).
+
+
+ You can also launch the demo node with a publish rate parameter, which slows or speeds up the cycling of images in the `libs/darknet/data` directory. For example, to publish at 0.5 Hz I could run:
 ```
 roslaunch rail_object_detector def_detector_demo.launch rate:=0.5
 ```
@@ -90,7 +97,9 @@ Wrapper for object detection through ROS services.  Relevant parameters are as f
 
 * **Topics**
   * `detector_node/detections` ([object_detector/Detections](msg/Detections.msg))
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections performed in the background by grabbing images at a specified interval. Only advertised if `publish_detections_topic` is true.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections performed in the background by grabbing images at a specified interval.
+  * `detector_node/debug/object_image` ([object_detector/debug/object_image])
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections visualized on incoming images as they come in from the subscriber. Only published if `debug:=true`.
 * **Parameters**
   * `image_sub_topic_name` (`string`, default: "/kinect/qhd/image_color_rect")
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Image topic name to subscribe to for object detection
