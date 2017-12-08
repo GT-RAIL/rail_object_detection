@@ -106,11 +106,11 @@ typedef struct network
 } network;
 };
 
-class Detector
+class DarknetDetector
 {
 public:
   // Constructors
-  Detector(ros::NodeHandle &handle, ros::NodeHandle &private_handle)
+  DarknetDetector(ros::NodeHandle &handle, ros::NodeHandle &private_handle)
     : nh_(handle), private_nh_(private_handle), it_(private_handle),
       perform_detections_(false), detections_thread_(NULL)
   { }

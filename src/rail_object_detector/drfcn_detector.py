@@ -11,7 +11,7 @@ import argparse
 import logging
 import pprint
 import cv2
-from config import config, update_config
+from drfcn_config import config, update_config
 
 
 def add_path(path):
@@ -20,7 +20,7 @@ def add_path(path):
 
 this_dir = os.path.dirname(__file__)
 
-lib_path = os.path.join(this_dir, '..', 'libs')
+lib_path = os.path.join(this_dir, '..', '..', 'libs')
 add_path(lib_path)
 
 from utils.image import resize, transform
@@ -29,9 +29,9 @@ os.environ['PYTHONUNBUFFERED'] = '1'
 os.environ['MXNET_CUDNN_AUTOTUNE_DEFAULT'] = '0'
 os.environ['MXNET_ENABLE_GPU_P2P'] = '0'
 cur_path = os.path.abspath(os.path.dirname(__file__))
-update_config(cur_path + '/../libs/rfcn_cfg/rfcn_coco_demo.yaml')
+update_config(cur_path + '/../../libs/rfcn_cfg/rfcn_coco_demo.yaml')
 
-sys.path.insert(0, os.path.join(cur_path, '../libs/external/mxnet', config.MXNET_VERSION))
+sys.path.insert(0, os.path.join(cur_path, '../../libs/external/mxnet', config.MXNET_VERSION))
 import mxnet as mx
 from core.tester import im_detect, Predictor
 from symbols import *
@@ -79,7 +79,7 @@ class Detector:
         max_data_shape = [[('data', (1, 3, max([v[0] for v in config.SCALES]), max([v[1] for v in config.SCALES])))]]
         provide_data = [[(k, v.shape) for k, v in zip(self.data_names, data[i])] for i in xrange(len(data))]
         provide_label = [None for i in xrange(len(data))]
-        arg_params, aux_params = load_param(cur_path + '/../libs/model/' + 'rfcn_dcn_coco', 0, process=True)
+        arg_params, aux_params = load_param(cur_path + '/../../libs/model/' + 'rfcn_dcn_coco', 0, process=True)
         self.predictor = Predictor(sym, self.data_names, self.label_names,
                                    context=[mx.gpu(0)], max_data_shapes=max_data_shape,
                                    provide_data=provide_data, provide_label=provide_label,

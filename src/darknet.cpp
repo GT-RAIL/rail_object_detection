@@ -23,7 +23,7 @@ extern "C" network create_network(char *cfg_filename, char *weight_filename);
 extern "C" char **get_class_names(char *classnames_filename);
 
 // Implementation of start
-bool Detector::start()
+bool DarknetDetector::start()
 {
   // Reset the pointers
   latest_image_.reset();
@@ -82,7 +82,7 @@ bool Detector::start()
   {
     // NOTE: Might want to add the compressed hint to this subscription
     image_sub_ = it_.subscribe(image_sub_topic_name, 1,
-                               &Detector::imageSubscriberCallback, this);
+                               &DarknetDetector::imageSubscriberCallback, this);
   }
 
   // Check to see if the scene service is to be used
@@ -94,7 +94,7 @@ bool Detector::start()
     // Service for the scene query
     ros::AdvertiseServiceOptions scene_opts;
     boost::function<bool(SceneQuery::Request &, SceneQuery::Response &)>
-      scene_callback_ptr = boost::bind(&Detector::sceneQueryCallback, this,
+      scene_callback_ptr = boost::bind(&DarknetDetector::sceneQueryCallback, this,
                                        _1, _2);
     scene_opts.init("objects_in_scene", scene_callback_ptr);
     scene_opts.callback_queue = scene_callback_q_.get();
@@ -123,7 +123,7 @@ bool Detector::start()
     // Service for the image query
     ros::AdvertiseServiceOptions image_opts;
     boost::function<bool(ImageQuery::Request &, ImageQuery::Response &)>
-      image_callback_ptr = boost::bind(&Detector::imageQueryCallback, this, _1,
+      image_callback_ptr = boost::bind(&DarknetDetector::imageQueryCallback, this, _1,
                                        _2);
     image_opts.init("objects_in_image", image_callback_ptr);
     image_opts.callback_queue = image_callback_q_.get();
@@ -149,7 +149,7 @@ bool Detector::start()
     perform_detections_ = true;
     detections_pub_ = private_nh_.advertise<Detections>("detections", 2);
     detections_thread_ = new boost::thread(
-      &Detector::runBackgroundDetections,
+      &DarknetDetector::runBackgroundDetections,
       this
     );
   }
@@ -158,7 +158,7 @@ bool Detector::start()
 }
 
 // Implementation of stop
-bool Detector::stop()
+bool DarknetDetector::stop()
 {
   if (use_scene_service_ || publish_detections_topic_)
   {
@@ -205,7 +205,7 @@ bool Detector::stop()
 }
 
 // Implementation of the subscriber
-void Detector::imageSubscriberCallback(
+void DarknetDetector::imageSubscriberCallback(
   const sensor_msgs::ImageConstPtr &msg)
 {
   // Update the cache of the latest image if we can acquire the lock to it
@@ -218,7 +218,7 @@ void Detector::imageSubscriberCallback(
 }
 
 // Implementation of detect objects
-bool Detector::detectObjects(cv_bridge::CvImagePtr cv_ptr,
+bool DarknetDetector::detectObjects(cv_bridge::CvImagePtr cv_ptr,
   std::vector<Object> &detected_objects)
 {
   // Create an IplImage and allocate the required variables
@@ -253,7 +253,7 @@ bool Detector::detectObjects(cv_bridge::CvImagePtr cv_ptr,
 }
 
 // Implementation of scene query callback
-bool Detector::sceneQueryCallback(SceneQuery::Request &req,
+bool DarknetDetector::sceneQueryCallback(SceneQuery::Request &req,
   SceneQuery::Response &res)
 {
   cv_bridge::CvImagePtr cv_ptr;
@@ -293,7 +293,7 @@ bool Detector::sceneQueryCallback(SceneQuery::Request &req,
 }
 
 // Implementation of the image query callback
-bool Detector::imageQueryCallback(ImageQuery::Request &req,
+bool DarknetDetector::imageQueryCallback(ImageQuery::Request &req,
   ImageQuery::Response &res)
 {
   // Create a CV image from the image message
@@ -324,7 +324,7 @@ bool Detector::imageQueryCallback(ImageQuery::Request &req,
 }
 
 // Implementation of background detection callback
-void Detector::backgroundDetectionCallback(const ros::TimerEvent &e)
+void DarknetDetector::backgroundDetectionCallback(const ros::TimerEvent &e)
 {
   cv_bridge::CvImagePtr cv_ptr;
   {
@@ -362,12 +362,12 @@ void Detector::backgroundDetectionCallback(const ros::TimerEvent &e)
 }
 
 // Implementation of run object detections
-void Detector::runBackgroundDetections()
+void DarknetDetector::runBackgroundDetections()
 {
   // Setup the timer and callback for performing the detections
   ros::Duration min_desired_sleep = ros::Duration(1/max_desired_publish_freq_);
   ros::Timer timer = nh_.createTimer(min_desired_sleep,
-                                     &Detector::backgroundDetectionCallback,
+                                     &DarknetDetector::backgroundDetectionCallback,
                                      this);
 
   while (perform_detections_)
