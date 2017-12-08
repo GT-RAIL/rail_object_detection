@@ -14,7 +14,7 @@ def detections_callback(data):
 
 def main():
 	rospy.init_node('test_detections_topic')
-	rospy.Subscriber('/detector_node/detections', Detections, detections_callback)
+	rospy.Subscriber('/darknet_node/detections', Detections, detections_callback)
 	rospy.spin()
 
 if __name__ == '__main__':

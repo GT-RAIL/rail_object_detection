@@ -18,7 +18,7 @@ def main():
 
 	rospack = rospkg.RosPack()
 	images = glob.glob(rospack.get_path('rail_object_detector') + '/libs/darknet/data/*.jpg')
-	service_proxy = rospy.ServiceProxy('/detector_node/objects_in_image', ImageQuery)
+	service_proxy = rospy.ServiceProxy('/darknet_node/objects_in_image', ImageQuery)
 
 	for image in images:
 		img = cv2.imread(image)
