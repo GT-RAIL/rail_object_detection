@@ -19,16 +19,13 @@ class image_pub():
 
     def run(self):
         rate = rospy.Rate(self.rate)
-        for image in self.images:
-            img = cv2.imread(image)
-            image_msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
-            self.image_topic.publish(image_msg)
-            rate.sleep()
+        while not rospy.is_shutdown():
+            for image in self.images:
+                img = cv2.imread(image)
+                image_msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
+                self.image_topic.publish(image_msg)
+                rate.sleep()
 
 if __name__ == '__main__':
-    try:
-        pubber = image_pub()
-        while True:
-            pubber.run()
-    except rospy.ROSInterruptException:
-        pass
+    pubber = image_pub()
+    pubber.run()

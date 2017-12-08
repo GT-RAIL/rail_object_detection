@@ -32,7 +32,6 @@ class ObjectDetector():
     This class interfaces to the deformable R-FCN for object detection
     """
     def __init__(self):
-        rospy.init_node('rail_detector_node')
         self.objects = []
         self.image_datastream = None
         self.input_image = None
@@ -114,7 +113,7 @@ class ObjectDetector():
                                 font, fontScale=0.75, color=(0, 0, 0), thickness=2)
         return im
 
-    def run(self,
+    def start(self,
             pub_image_topic='~debug/object_image',
             pub_object_topic='~objects'):
         if not self.use_compressed_image:
@@ -124,12 +123,10 @@ class ObjectDetector():
             rospy.Subscriber(self.image_sub_topic_name + '/compressed', CompressedImage, self._parse_image)
         if self.debug:
             self.image_pub = rospy.Publisher(pub_image_topic, Image, queue_size=2)  # image publisher
-        self.object_pub = rospy.Publisher(pub_object_topic, Detections, queue_size=2)  # faces publisher
-        rospy.spin()
+        self.object_pub = rospy.Publisher(pub_object_topic, Detections, queue_size=2)  # detections publisher
 
 if __name__ == '__main__':
-    try:
-        detector = ObjectDetector()
-        detector.run()
-    except rospy.ROSInterruptException:
-        pass
+    rospy.init_node('drfcn_node')
+    detector = ObjectDetector()
+    detector.start()
+    rospy.spin()
