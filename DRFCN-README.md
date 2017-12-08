@@ -39,7 +39,7 @@ Below is a list of python libraries that are required for the Deformable RFCN ne
  * mxnet-cu80==0.12.0b20171027
  * Pillow
  * pyyaml
- 
+
 Note that the version of MXNet is the same as in the Deformable ConvNets repo. You may change the version if your setup requires something different, but it may not work properly.
 
 There is a `requirements.txt` file included in the repo, which lists the above libraries. You can install all of them at once by running:
@@ -67,7 +67,7 @@ rosrun image_view image_view image:=/rail_detector_node/debug/object_image
 ```
 and you will see the image you pointed to with detected objects highlighted and labeled. It should look something like this:
 
-![Visualization of the object detector](objects.gif)
+![Visualization of the object detector](doc/objects.gif)
 
 Colors change with each new detection of the object, and note that there is no tracking or propagation of labels (as on the couch in the gif above).
 
@@ -77,7 +77,8 @@ Colors change with each new detection of the object, and note that there is no t
 roslaunch rail_object_detector def_detector_demo.launch rate:=0.5
 ```
 
-Otherwise, you can run a camera with whichever ROS camera node you would like.  
+Otherwise, you can run a camera with whichever ROS camera node you would like.
+
 1. Run a camera with your favorite ROS camera node.
 1. Launch the `detector_node` node with the image topic of your camera and debug mode enabled:
 ```

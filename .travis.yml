@@ -51,6 +51,6 @@ cache:
 
 script:
   - echo "Running 64-bit test"
-  - docker run -i --rm -v ${PWD}:/src -w /src ubuntu:trusty /bin/bash -c "linux64 /src/build.sh"
+  - docker run -i --rm -v ${PWD}:/src -w /src ubuntu:trusty /bin/bash -c "linux64 /src/bin/travis_build.sh"
   - echo "Running 32-bit test"
-  - docker run -i --rm -v ${PWD}:/src -w /src f69m/ubuntu32:trusty /bin/bash -c "linux32 --32bit /src/build.sh"
+  - docker run -i --rm -v ${PWD}:/src -w /src f69m/ubuntu32:trusty /bin/bash -c "linux32 --32bit /src/bin/travis_build.sh"
