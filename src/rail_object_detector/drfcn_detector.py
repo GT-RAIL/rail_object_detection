@@ -11,7 +11,8 @@ import argparse
 import logging
 import pprint
 import cv2
-from drfcn_config import config, update_config
+
+from rail_object_detector.drfcn_config import config, update_config
 
 
 def add_path(path):

@@ -10,7 +10,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-import drfcn_detector
+from rail_object_detector import drfcn_detector
 
 # Debug Helpers
 FAIL_COLOR = '\033[91m'

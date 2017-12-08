@@ -7,7 +7,7 @@
         <param name="rate" value="$(arg rate)" />
     </node>
 
-	<node pkg="rail_object_detector" type="detector_node.py" name="rail_detector_node">
+	<node pkg="rail_object_detector" type="drfcn_node" name="drfcn_node">
 		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
 		<param name="debug" type="bool" value="$(arg debug)" />
 	</node>
