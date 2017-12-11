@@ -2,6 +2,14 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added Deformable RFCN detector.
+* Change darknet node name.
+* Change directory structure and file names for darknet.
+* Update README with valid weights file, and fix broken links
+* Contributors: Andrew Silva, Ryan Petschek, Siddhartha Banerjee, Weiyu Liu
+
 1.0.4 (2017-02-09)
 ------------------
 * Adding in an automatic build for 32 bit
