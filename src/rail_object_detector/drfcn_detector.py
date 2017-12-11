@@ -12,27 +12,28 @@ import logging
 import pprint
 import cv2
 
-from rail_object_detector.drfcn_config import config, update_config
+import rospkg
 
-
+# TODO: When the code in setup.py starts working, then make sure to remove this
+# paths hack as well
 def add_path(path):
     if path not in sys.path:
         sys.path.insert(0, path)
+rospack = rospkg.RosPack()
+LIB_PATH = os.path.join(rospack.get_path('rail_object_detector'), 'libs', 'drfcn')
+add_path(LIB_PATH)
 
-this_dir = os.path.dirname(__file__)
-
-lib_path = os.path.join(this_dir, '..', '..', 'libs')
-add_path(lib_path)
-
+# Start importing mxnet
 from utils.image import resize, transform
+from cfg.drfcn_config import config, update_config
+
 # get config
 os.environ['PYTHONUNBUFFERED'] = '1'
 os.environ['MXNET_CUDNN_AUTOTUNE_DEFAULT'] = '0'
 os.environ['MXNET_ENABLE_GPU_P2P'] = '0'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-update_config(cur_path + '/../../libs/rfcn_cfg/rfcn_coco_demo.yaml')
+update_config(os.path.join(LIB_PATH, 'cfg', 'rfcn_coco_demo.yaml'))
 
-sys.path.insert(0, os.path.join(cur_path, '../../libs/external/mxnet', config.MXNET_VERSION))
+# actually import mxnet
 import mxnet as mx
 from core.tester import im_detect, Predictor
 from symbols import *
@@ -43,7 +44,11 @@ from nms.nms import py_nms_wrapper, cpu_nms_wrapper, gpu_nms_wrapper
 
 
 class Detector:
-    def __init__(self, hd_images=False):
+    def __init__(
+        self,
+        model_path=os.path.join(LIB_PATH, 'model', 'rfcn_dcn_coco'),
+        hd_images=False
+    ):
         # IF we are guaranteed QHD / HD, we can remove scaling and resizing and be a bit faster
         # if hd_images:
         #     config.SCALES = [(1080, 1820)]
@@ -80,7 +85,7 @@ class Detector:
         max_data_shape = [[('data', (1, 3, max([v[0] for v in config.SCALES]), max([v[1] for v in config.SCALES])))]]
         provide_data = [[(k, v.shape) for k, v in zip(self.data_names, data[i])] for i in xrange(len(data))]
         provide_label = [None for i in xrange(len(data))]
-        arg_params, aux_params = load_param(cur_path + '/../../libs/model/' + 'rfcn_dcn_coco', 0, process=True)
+        arg_params, aux_params = load_param(model_path, 0, process=True)
         self.predictor = Predictor(sym, self.data_names, self.label_names,
                                    context=[mx.gpu(0)], max_data_shapes=max_data_shape,
                                    provide_data=provide_data, provide_label=provide_label,

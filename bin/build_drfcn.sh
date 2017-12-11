@@ -4,12 +4,12 @@
 set -ex
 
 # Get the directory that this script is located in
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "$0" )" && pwd -P )"
 
-mkdir -p ${DIR}/../libs/mxnet
-mkdir -p ${DIR}/../libs/model
+mkdir -p ${DIR}/../libs/drfcn/mxnet
+mkdir -p ${DIR}/../libs/drfcn/model
 
-cd ${DIR}/../libs/bbox
+cd ${DIR}/../libs/drfcn/bbox
 python setup_linux.py build_ext --inplace
 cd ../nms
 python setup_linux.py build_ext --inplace

@@ -2,7 +2,7 @@
 // Created by banerjs on 12/13/16.
 //
 
-#include "rail_object_detector/darknet.h"
+#include "rail_object_detector/darknet_detector.h"
 
 using namespace rail_object_detector;
 

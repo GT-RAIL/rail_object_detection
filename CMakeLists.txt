@@ -121,7 +121,7 @@ add_custom_target(darknet ALL
 
 ## Declare a C++ library
 add_library(rail_darknet_detector
-  src/darknet.cpp
+  src/darknet_detector.cpp
 )
 
 ## Add cmake target dependencies of the library

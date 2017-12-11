@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # This file is responsible for bridging ROS to the ObjectDetector class (built with PyCaffe)
+import os
 import sys
 import cv2
-import rospy
-from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image, CompressedImage
-from rail_object_detector.msg import Object, Detections
 import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 
+import rospy
+import rospkg
+
+from cv_bridge import CvBridge, CvBridgeError
 from rail_object_detector import drfcn_detector
+
+from sensor_msgs.msg import Image, CompressedImage
+from rail_object_detector.msg import Object, Detections
 
 # Debug Helpers
 FAIL_COLOR = '\033[91m'
@@ -36,11 +41,19 @@ class DRFCNDetector():
         self.objects = []
         self.image_datastream = None
         self.input_image = None
+
         self.bridge = CvBridge()
-        self.detector = drfcn_detector.Detector()
+
         self.debug = rospy.get_param('~debug', default=False)
         self.image_sub_topic_name = rospy.get_param('~image_sub_topic_name', default='/kinect/qhd/image_color_rect')
         self.use_compressed_image = rospy.get_param('~use_compressed_image', default=False)
+
+        rospack = rospkg.RosPack()
+        self.model_filename = rospy.get_param(
+            '~model_filename',
+            os.path.join(rospack.get_path('rail_object_detector'), 'libs', 'drfcn' , 'model', 'rfcn_dcn_coco')
+        )
+        self.detector = drfcn_detector.Detector(self.model_filename)
 
     def _convert_msg_to_image(self, image_msg):
         """
