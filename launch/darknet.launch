@@ -1,0 +1,25 @@
+<launch>
+	<arg name="num_service_threads" default="0" />
+	<arg name="use_scene_service" default="true" />
+	<arg name="use_image_service" default="false" />
+	<arg name="publish_detections_topic" default="false" />
+	<arg name="image_sub_topic_name" default="/kinect/hd/image_color_rect" />
+	<arg name="max_desired_publish_freq" default="1.0" />
+	<arg name="probability_threshold" default="0.25" />
+	<arg name="classnames_filename" default="$(find rail_object_detector)/libs/darknet/data/coco.names" />
+	<arg name="cfg_filename" default="$(find rail_object_detector)/libs/darknet/cfg/yolo.cfg" />
+	<arg name="weight_filename" default="$(find rail_object_detector)/libs/darknet/yolo.weights" />
+
+	<node pkg="rail_object_detector" type="darknet_node" name="darknet_node">
+		<param name="num_service_threads" type="int" value="$(arg num_service_threads)" />
+		<param name="use_scene_service" type="bool" value="$(arg use_scene_service)" />
+		<param name="use_image_service" type="bool" value="$(arg use_image_service)" />
+		<param name="publish_detections_topic" type="bool" value="$(arg publish_detections_topic)" />
+		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
+		<param name="max_desired_publish_freq" type="double" value="$(arg max_desired_publish_freq)" />
+		<param name="probability_threshold" type="double" value="$(arg probability_threshold)" />
+		<param name="classnames_filename" type="string" value="$(arg classnames_filename)" />
+		<param name="cfg_filename" type="string" value="$(arg cfg_filename)" />
+		<param name="weight_filename" type="string" value="$(arg weight_filename)" />
+	</node>
+</launch>

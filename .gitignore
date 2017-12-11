@@ -1,3 +1,4 @@
+# General
 *.*~
 .catkin_workspace
 .classpath
@@ -129,3 +130,6 @@ ipch/
 
 # TFS 2012 Local Workspace
 $tf/
+
+# Model parameter files
+*.params

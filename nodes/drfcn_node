@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+from rail_object_detector.object_detectors import DRFCNDetector
+import rospy
+
+log_lvls = {
+    'DEBUG': rospy.DEBUG,
+    'INFO': rospy.INFO,
+    'WARN': rospy.WARN,
+    'ERROR': rospy.ERROR,
+    'FATAL': rospy.FATAL,
+    'debug': rospy.DEBUG,
+    'info': rospy.INFO,
+    'warn': rospy.WARN,
+    'error': rospy.ERROR,
+    'fatal': rospy.FATAL,
+}
+
+if __name__ == "__main__":
+    """
+    Initialize the node
+    """
+    log_lvl = rospy.get_param("/logger_lvl", 'INFO')
+    rospy.init_node('drfcn_node', log_level=log_lvls[log_lvl])
+    try:
+        detector = DRFCNDetector()
+        detector.start()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass

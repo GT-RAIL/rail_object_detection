@@ -1,0 +1,5 @@
+Cython
+EasyDict
+mxnet-cu80==0.12.0b20171027
+Pillow
+pyyaml

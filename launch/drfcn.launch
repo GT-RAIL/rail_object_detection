@@ -1,0 +1,13 @@
+<launch>
+	<arg name="image_sub_topic_name" default="/kinect/qhd/image_color_rect" />
+	<arg name="model_filename" default="$(find rail_object_detector)/libs/drfcn/model/rfcn_dcn_coco" />
+	<arg name="debug" default="false" />
+	<arg name="use_compressed_image" default="false" />
+
+	<node pkg="rail_object_detector" type="drfcn_node" name="drfcn_node">
+		<param name="image_sub_topic_name" type="string" value="$(arg image_sub_topic_name)" />
+		<param name="debug" type="bool" value="$(arg debug)" />
+		<param name="use_compressed_image" type="bool" value="$(arg use_compressed_image)" />
+		<param name="model_filename" value="$(arg model_filename)" />
+	</node>
+</launch>

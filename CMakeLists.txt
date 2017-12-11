@@ -18,6 +18,35 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
 
+## Uncomment this if the package has a setup.py. This macro ensures
+## modules and global scripts declared therein get installed
+## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+catkin_python_setup()
+
+################################################
+## Declare ROS messages, services and actions ##
+################################################
+
+## To declare and build messages, services or actions from within this
+## package, follow these steps:
+## * Let MSG_DEP_SET be the set of packages whose message types you use in
+##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
+## * In the file package.xml:
+##   * add a build_depend tag for "message_generation"
+##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
+##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
+##     but can be declared for certainty nonetheless:
+##     * add a run_depend tag for "message_runtime"
+## * In this file (CMakeLists.txt):
+##   * add "message_generation" and every package in MSG_DEP_SET to
+##     find_package(catkin REQUIRED COMPONENTS ...)
+##   * add "message_runtime" and every package in MSG_DEP_SET to
+##     catkin_package(CATKIN_DEPENDS ...)
+##   * uncomment the add_*_files sections below as needed
+##     and list every .msg/.srv/.action file to be processed
+##   * uncomment the generate_messages entry below
+##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
+
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
@@ -91,35 +120,35 @@ add_custom_target(darknet ALL
 )
 
 ## Declare a C++ library
-add_library(rail_object_detector
-  src/${PROJECT_NAME}/detector.cpp
+add_library(rail_darknet_detector
+  src/darknet_detector.cpp
 )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(rail_object_detector
+add_dependencies(rail_darknet_detector
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
   darknet
 )
 
 ## Declare a C++ executable
-add_executable(detector_node
-  src/detector_node.cpp
+add_executable(darknet_node
+  nodes/darknet_node.cpp
 )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(detector_node
+add_dependencies(darknet_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
-  rail_object_detector
+  rail_darknet_detector
 )
 
 ## Specify libraries to link a library or executable target against
 if(DARKNET_GPU EQUAL 1 AND DEFINED DARKNET_GPU_ARCH)
-  target_link_libraries(rail_object_detector
+  target_link_libraries(rail_darknet_detector
     ${catkin_LIBRARIES}
     ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
     -L/usr/local/cuda/lib64
@@ -129,15 +158,15 @@ if(DARKNET_GPU EQUAL 1 AND DEFINED DARKNET_GPU_ARCH)
     -lcurand
   )
 else()
-  target_link_libraries(rail_object_detector
+  target_link_libraries(rail_darknet_detector
     ${catkin_LIBRARIES}
     ${PROJECT_SOURCE_DIR}/libs/darknet/libdarknet.a
   )
 endif()
 
-target_link_libraries(detector_node
+target_link_libraries(darknet_node
   ${catkin_LIBRARIES}
-  rail_object_detector
+  rail_darknet_detector
 )
 
 #############
@@ -145,10 +174,15 @@ target_link_libraries(detector_node
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS detector_node rail_object_detector
+install(TARGETS darknet_node rail_darknet_detector
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Install the python scripts at the appropriate location
+catkin_install_python(PROGRAMS nodes/drfcn_node
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation
