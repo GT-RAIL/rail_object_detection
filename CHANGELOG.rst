@@ -2,8 +2,8 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2017-12-11)
+------------------
 * Added Deformable RFCN detector.
 * Change darknet node name.
 * Change directory structure and file names for darknet.
