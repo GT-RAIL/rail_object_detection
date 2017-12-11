@@ -129,7 +129,7 @@ class DRFCNDetector():
 
     def start(self,
             pub_image_topic='~debug/object_image',
-            pub_object_topic='~objects'):
+            pub_object_topic='~detections'):
         if not self.use_compressed_image:
             rospy.Subscriber(self.image_sub_topic_name, Image,
                              self._parse_image)  # subscribe to sub_image_topic and callback parse

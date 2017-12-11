@@ -76,13 +76,13 @@ Once you have all of the requirements, installation procedes as follows:
 1. Put this package into your workspace
 1. Navigate to the top level of this package (where this README is located)
 1. run `sh bin/build_drfcn.sh`
-1. Download the model parameters from [this Dropbox link](https://www.dropbox.com/s/b5n215zidzqaxft/rfcn_dcn_coco-0000.params?dl=0) and move them into the `libs/model` subdirectory of this package.
+1. Download the model parameters from [this Dropbox link](https://www.dropbox.com/s/b5n215zidzqaxft/rfcn_dcn_coco-0000.params?dl=0) and move them into the `libs/drfcn/model` subdirectory of this package.
 1. Run `catkin_make` and enjoy the ability to use object detection! (If you need to update the file paths, use absolute paths!)
 
 
 ## Testing your Installation
 
-Testing either detector is possible by first adding some testing .jpg images to the `libs/darknet/data` directory. Then follow the procedures below according to the detector you wish to test.
+Testing either detector is possible by starting a camera node or by adding some testing .jpg images to the `libs/darknet/data` directory. Then follow the procedures below according to the detector you wish to test.
 
 #### Darknet Testing
 
@@ -97,11 +97,11 @@ roslaunch rail_object_detector darknet.launch use_image_service:=true image_sub_
 ```
 rosrun rail_object_detector test_scene_query.py
 ```
-- Run the image query test script; this should run object recognition on the images you copied into `data`:
+- Run the image query test script; this should run object recognition on the images you copied into `libs/darknet/data`:
 ```
 rosrun rail_object_detector test_image_query.py
 ```
-- Shutdown the previous launch and restart with services disabled but the detections topic enabled (this is due to a bug on CPU mode where the topic and services don't seem to work well together):
+- Shutdown the previous launch and restart with services disabled but the detections topic enabled:
 ```
 roslaunch rail_object_detector darknet.launch use_image_service:=true image_sub_topic_name:=[camera image here]
 ```
@@ -119,7 +119,7 @@ roslaunch rail_object_detector drfcn_demo.launch
 ```
 In a separate terminal, run:
 ```
-rosrun image_view image_view image:=/rail_detector_node/debug/object_image
+rosrun image_view image_view image:=/drfcn_node/debug/object_image
 ```
 and you will see the image you pointed to with detected objects highlighted and labeled. It should look something like this:
 
@@ -127,7 +127,7 @@ and you will see the image you pointed to with detected objects highlighted and 
 
 Colors change with each new detection of the object, and note that there is no tracking or propagation of labels (as on the couch in the gif above).
 
-You can also launch the demo node with a publish rate parameter, which slows or speeds up the cycling of images in the `libs/darknet/data` directory. For example, to publish at 0.5 Hz I could run:
+You can also launch the demo node with a publish rate parameter, which slows or speeds up the cycling of images in the `libs/darknet/data` directory. For example, to publish at 0.5 Hz run:
 ```
 roslaunch rail_object_detector drfcn_demo.launch rate:=0.5
 ```
@@ -141,7 +141,7 @@ roslaunch rail_object_detector drfcn.launch image_sub_topic_name:=[camera topic 
 ```
 Once again, in a separate terminal, run:
 ```
-rosrun image_view image_view image:=/rail_object_detector/debug/object_image
+rosrun image_view image_view image:=/drfcn_node/debug/object_image
 ```
 and you will see the image you pointed to with detected objects highlighted and labeled.
 
@@ -149,57 +149,59 @@ and you will see the image you pointed to with detected objects highlighted and 
 
 ### detector_node
 
-Wrapper for object detection through ROS services.  Relevant services and parameters are as follows:
+Named `darknet_node` and `drfcn_node` for the Darknet and DRFCN detectors respectively. It is a wrapper for object detection through ROS services.  Relevant services and parameters are as follows:
 
 * **Services** (Darknet Only)
-  * `detector_node/objects_in_scene` ([object_detector/SceneQuery](srv/SceneQuery.srv))
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Scene Query service: recognize objects in the latest image from the camera stream `image_sub_topic_name`.  Takes no input, and outputs a list of detected, labeled objects and a corresponding image.  Only advertised if `use_scene_service` is true.
-  * `detector_node/objects_in_image` ([object_detector/ImageQuery](srv/ImageQuery.srv))
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Image Query service: recognize objects in an image passed to the service.  Takes an image as input, and outputs a list of detected, labeled objects and a corresponding image. Only advertised if `use_image_service` is true.
+  * `<detector_node>/objects_in_scene` ([object_detector/SceneQuery](srv/SceneQuery.srv))
+  <br/>Scene Query service: recognize objects in the latest image from the camera stream `image_sub_topic_name`.  Takes no input, and outputs a list of detected, labeled objects and a corresponding image.  Only advertised if `use_scene_service` is true.
+  * `<detector_node>/objects_in_image` ([object_detector/ImageQuery](srv/ImageQuery.srv))
+  <br/>Image Query service: recognize objects in an image passed to the service.  Takes an image as input, and outputs a list of detected, labeled objects and a corresponding image. Only advertised if `use_image_service` is true.
 * **Topics** (Darknet and DRFCN)
-  * `detector_node/detections` ([object_detector/Detections](msg/Detections.msg))
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections performed in the background by grabbing images at a specified interval. For Darknet, advertised if `publish_detections_topic` is true. For DRFCN, this is always published.
-  * `detector_node/debug/object_image`
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections visualized on incoming images as they come in from the subscriber. Only published if `debug:=true`. Currently unavailable for the Darknet detector.
+  * `<detector_node>/detections` ([object_detector/Detections](msg/Detections.msg))
+  <br/>Topic with object detections performed in the background by grabbing images at a specified interval. For Darknet, advertised if `publish_detections_topic` is true. For DRFCN, this is always published.
+  * `<detector_node>/debug/object_image` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
+  <br/>Topic with object detections visualized on incoming images as they come in from the subscriber. Only published if `debug:=true`. Currently unavailable for the Darknet detector.
 * **Parameters** (Darknet and DRFCN)
   * `image_sub_topic_name` (`string`, default: "/kinect/qhd/image_color_rect")
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Image topic name to subscribe to for object detection
+  <br/>Image topic name from camera to subscribe to for object detection
 * **Parameters** (DRFCN Only)
-  * `debug` (`bool`, default: false) (DRFCN Only)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Enable or disable debug mode, which publishes input images with object bounding boxes and labels overlaid
+  * `debug` (`bool`, default: false)
+  <br/>Enable or disable debug mode, which publishes input images with object bounding boxes and labels overlaid
   * `use_compressed_image` (`bool`, default: false)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Flag to use the compressed version of your input image stream. It will append "\_compressed" to the name of your image topic, and changes how the input images are read (should just work though)
+  <br/>Flag to use the compressed version of your input image stream. It will append `/compressed` to the name of your image topic
+  * `model_filename` (`string`, default: "${WS}/libs/drfcn/model/rfcn_dcn_coco")
+  <br/>Model parameters for the DRFCN detector. Make sure to use an absolute path. See the documentation on DRFCNs for details on the parameters themselves.
 * **Parameters** (Darknet Only)
   * `num_service_threads` (`int`, default: 0)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Number of asynchronous threads that can be used to service each of the services. `0` implies the use of one thread per processor
+  <br/>Number of asynchronous threads that can be used to service each of the services. `0` implies the use of one thread per processor
   * `use_scene_service` (`bool`, default: true)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Enable or disable Scene Query service
+  <br/>Enable or disable Scene Query service
   * `use_image_service` (`bool`, default: false)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Enable or disable Image Query service
+  <br/>Enable or disable Image Query service
   * `publish_detections_topic` (`bool`, default: false)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Enable or disable Detections topic
+  <br/>Enable or disable Detections topic
   * `max_desired_publish_freq` (`float`, default: 1.0)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Desired frequency of object detection. If frequency exceeds maximum detector frequency, the desired value will not be achieved
+  <br/>Desired frequency of object detection. If frequency exceeds maximum detector frequency, the desired value will not be achieved
   * `probability_threshold` (`float`, default: 0.25)
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Confidence value in recognition below which a detected object is treated as unrecognized
+  <br/>Confidence value in recognition below which a detected object is treated as unrecognized
   * `classnames_filename` (`string`, default: "${WS}/libs/darknet/data/coco.names")
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
+  <br/>Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
   * `cfg_filename` (`string`, default: "${WS}/libs/darknet/cfg/yolo.cfg")
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
+  <br/>Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
   * `weight_filename` (`string`, default: "${WS}/libs/darknet/yolo.weights")
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
+  <br/>Configuration file for darknet.  Make sure to use an absolute path.  See darknet for details on configuration file itself.
 
 ## Startup
 
 Simply run the launch file to bring up all of the package's functionality:
 ```
-roslaunch rail_object_detector detector.launch
+roslaunch rail_object_detector <detector>.launch
 ```
 Where 'detector' is either 'darknet' or 'drfcn'. Note that the default Darknet uses scene queries only, and the default DRFCN uses image topics only.
 
 ## GPU Mode
 
-DRFCN requires an NVIDIA GPU with at least 4GB memory, and requires no additional setup to run in GPU mode (as it is the only mode). Building Darknet for GPU mode will greatly increase detection speed, but requires some additional setup, which we detail below.
+DRFCN requires an NVIDIA GPU with at least 4GB memory, and requires no additional setup to run in GPU mode (as it is the only mode). Building Darknet for GPU mode will greatly increase detection speed, but requires some additional setup.
 
 #### Building with CUDA
 
@@ -218,16 +220,13 @@ Explanation of flags:
 
 ## Scope for Improvement
 
-1. Scene Query and Publishing the topic don't seem to work well together for some fathomable reason.
-1. Cleaning build artifacts `catkin_make clean` does not cleanup darknet build artifacts.
-1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
-1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
-1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
-1. There are most probably some memory leaks that might accumulate over a long period of time. These should be fixed at some point.
-
-The immediately TODO list includes:
-- [x] Create a demo publisher to cycle through images
-- [x] Remove absolute paths
 - [ ] Move `libs/darknet/data` to `libs/data` for clarity / ubiquity
 - [ ] Add a service call for the deformable convnets
-- [ ] Remove the need to run `sh bin/build_drfcn.sh`
+- [ ] Automatically run `sh bin/build_drfcn.sh`
+- [ ] Travis builds only test the CPU build of darknet. Include tests for the other configurations too.
+- [ ] Installing the mxnet libraries through `setup.py` is failing. (See `TODO` comments in `setup.py` and `drfcn_detector.py`)
+- [ ] Scene Query and Publishing the topic don't seem to work well together on darknet for some fathomable reason. Fix it.
+- [ ] Cleaning build artifacts `catkin_make clean` does not cleanup darknet build artifacts.
+- [ ] Include the ability to download the weights files automatically from the `CMakeLists.txt` file
+- [ ] There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
+- [ ] There are no checks for memory leaks that might accummulate over time in the darknet detector.
