@@ -4,11 +4,11 @@
 
 ## Two Minute Intro
 
-This package now includes two object detectors which you may choose between, YOLOv2 and Deformable R-FCN (DRFCN). Detections from YOLOv2 are a bit faster, >10fps compared to ~4fps (on a Titan X), but less accurate than the from DRFCN.
+This package now includes two object detectors which you may choose between, YOLOv2 and Deformable R-FCN (DRFCN). Detections from YOLOv2 are a bit faster, >10fps compared to ~4fps (on a Titan X), but less accurate than the detections from DRFCN.
 
 The YOLOv2 detector uses [darknet](https://github.com/pjreddie/darknet) to perform object detection. It provides the ability to query for objects in an image through both services as well as from a topic.
 
-The DRFCN detector is built on MXNet, and provides the ability to query for objects from a topic.
+The [Deformable R-FCN](https://github.com/msracver/Deformable-ConvNets) detector is built on MXNet, and provides the ability to query for objects from a topic.
 
 The response to all queries contains a list of objects, each of which has the following properties:
 
@@ -30,13 +30,13 @@ There are two modes of querying:
 
 Scene Queries are served by first subscribing to an existing camera sensor topic. Then at the moment of the query, we run object recognition on the latest frame from the camera and the resulting objects in that scene are returned after however long darknet takes.
 
-Image Queries require an image to be sent alongwith the query. Object recognition is performed on this input image, and the detected objects as well as the original image are sent back.
+Image Queries require an image to be sent along with the query. Object recognition is performed on this input image, and the detected objects as well as the original image are sent back.
 
 #### Query through topic (Darknet and DRFCN)
 
-If enabled, the detector subscribes to an existing camera sensor topic and grabs images from this camera at (prespecified) intervals. After performing object detection on the grabbed image, the detector publishes the list of objects that were found to the query topic and with the timestamp of the image which was grabbed for detection.
+If enabled (default with DRFCN), the detector subscribes to an existing camera sensor topic and grabs images from this camera as they are published. After performing object detection on the grabbed image, the detector publishes the list of objects that were found to the query topic along with the timestamp of the image which was grabbed for detection.
 
-The interval for grabbing images is specified in the form of a frequency. If the desired frequency exceeds the maximum frequency of operation of the detector (~1 Hz on CPU), we limit to the maximum frequency of operation.
+With the Darknet detector, the interval for grabbing images is specified in the form of a frequency. If the desired frequency exceeds the maximum frequency of operation of the detector (~1 Hz on CPU), we limit to the maximum frequency of operation.
 
 ## Menu
  * [Installation](#installation)
@@ -159,7 +159,7 @@ Wrapper for object detection through ROS services.  Relevant services and parame
 * **Topics** (Darknet and DRFCN)
   * `detector_node/detections` ([object_detector/Detections](msg/Detections.msg))
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections performed in the background by grabbing images at a specified interval. For Darknet, advertised if `publish_detections_topic` is true. For DRFCN, this is always published.
-  * `detector_node/debug/object_image` (DRFCN Only)
+  * `detector_node/debug/object_image`
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Topic with object detections visualized on incoming images as they come in from the subscriber. Only published if `debug:=true`. Currently unavailable for the Darknet detector.
 * **Parameters** (Darknet and DRFCN)
   * `image_sub_topic_name` (`string`, default: "/kinect/qhd/image_color_rect")
@@ -218,9 +218,16 @@ Explanation of flags:
 
 ## Scope for Improvement
 
-1. Scene Query and Publishing the topic don't seem to work well together for some unfathomable reason.
+1. Scene Query and Publishing the topic don't seem to work well together for some fathomable reason.
 1. Cleaning build artifacts `catkin_make clean` does not cleanup darknet build artifacts.
 1. Include the ability to download the weights files automatically from the `CMakeLists.txt` file
 1. There is plenty of room for better logging - I do most of mine using the debugger, so there aren't as many status print commands as normal
 1. There is a distinct lack of defensive programming against malicious (NULL) messages and the like. Beware.
 1. There are most probably some memory leaks that might accumulate over a long period of time. These should be fixed at some point.
+
+The immediately TODO list includes:
+- [x] Create a demo publisher to cycle through images
+- [x] Remove absolute paths
+- [ ] Move `libs/darknet/data` to `libs/data` for clarity / ubiquity
+- [ ] Add a service call for the deformable convnets
+- [ ] Remove the need to run `sh bin/build_drfcn.sh`
