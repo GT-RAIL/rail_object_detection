@@ -12,6 +12,7 @@
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <opencv2/core/fast_math.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <ros/ros.h>

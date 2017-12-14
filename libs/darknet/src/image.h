@@ -9,6 +9,7 @@
 #include "box.h"
 
 #ifdef OPENCV
+#include "opencv2/core/fast_math.hpp"
 #include "opencv2/imgproc/imgproc_c.h"
 #endif
 
