@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/GT-RAIL/rail_object_detector.svg?branch=master)](https://travis-ci.org/GT-RAIL/rail_object_detector)
 
+## OpenCV 3.0+ Warning:
+
+Many files within Darknet will no longer compile on OpenCV 3+. We have a branch titled 'opencv3_compilation' which fixes these errors for CPU, but there are many more to fix before Darknet will compile for GPU use. As such, if you are on OpenCV 3+, we suggest cloning the opencv3_compilation branch and using the DRFCN detector instead of Darknet.
+
 ## Two Minute Intro
 
 This package now includes two object detectors which you may choose between, YOLOv2 and Deformable R-FCN (DRFCN). Detections from YOLOv2 are a bit faster, >10fps compared to ~4fps (on a Titan X), but less accurate than the detections from DRFCN.
