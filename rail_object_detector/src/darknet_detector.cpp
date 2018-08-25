@@ -5,6 +5,7 @@
 #include "rail_object_detector/darknet_detector.h"
 
 using namespace rail_object_detector;
+using namespace rail_object_detector_msgs;
 
 // Helper functions
 //inline double_t timediff_usec(                  // Provide the difference btw

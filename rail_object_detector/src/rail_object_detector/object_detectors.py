@@ -15,7 +15,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from rail_object_detector import drfcn_detector
 
 from sensor_msgs.msg import Image, CompressedImage
-from rail_object_detector.msg import Object, Detections
+from rail_object_detector_msgs.msg import Object, Detections
 
 # Debug Helpers
 FAIL_COLOR = '\033[91m'

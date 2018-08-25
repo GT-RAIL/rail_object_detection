@@ -3,7 +3,7 @@
 # topic
 
 import rospy
-from rail_object_detector.msg import Detections
+from rail_object_detector_msgs.msg import Detections
 
 def detections_callback(data):
 	rospy.loginfo("*****************New Message:*********************")
