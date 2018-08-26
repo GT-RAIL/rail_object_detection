@@ -103,7 +103,7 @@ rosrun rail_object_detector test_image_query.py
 ```
 - Shutdown the previous launch and restart with services disabled but the detections topic enabled:
 ```
-roslaunch rail_object_detector darknet.launch use_image_service:=true image_sub_topic_name:=[camera image here]
+roslaunch rail_object_detector darknet.launch publish_detections_topic:=true image_sub_topic_name:=[camera image here]
 ```
 - Run the topic test script; this should run object recognition in the backround and print to console the list of objects that were detected along with the timestamp:
 ```
