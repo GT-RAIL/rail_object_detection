@@ -23,14 +23,14 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 
-#include "rail_object_detector_msgs/Detections.h"
-#include "rail_object_detector_msgs/Object.h"
-#include "rail_object_detector_msgs/SceneQuery.h"
-#include "rail_object_detector_msgs/ImageQuery.h"
+#include "rail_object_detection_msgs/Detections.h"
+#include "rail_object_detection_msgs/Object.h"
+#include "rail_object_detection_msgs/SceneQuery.h"
+#include "rail_object_detection_msgs/ImageQuery.h"
 
 #include "detector.h"
 
-using namespace rail_object_detector_msgs;
+using namespace rail_object_detection_msgs;
 
 namespace rail_object_detector
 {

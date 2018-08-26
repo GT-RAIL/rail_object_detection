@@ -7,7 +7,7 @@ import glob
 import rospkg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from rail_object_detector_msgs.srv import ImageQuery, ImageQueryRequest, ImageQueryResponse
+from rail_object_detection_msgs.srv import ImageQuery, ImageQueryRequest, ImageQueryResponse
 
 COLORS = [(10,10,10), (100,10,10), (200,10,10), (10,100,10), (10,200,10),
 (10,10,100), (10,10,200), (100,100,100), (200,100,100), (100,200,100),

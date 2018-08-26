@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_geometry
   image_transport
-  rail_object_detector_msgs
+  rail_object_detection_msgs
   roscpp
   sensor_msgs
   std_msgs
@@ -85,6 +85,7 @@ catkin_package(
     cv_bridge
     image_transport
     sensor_msgs
+    rail_object_detection_msgs
 #  DEPENDS system_lib
 )
 

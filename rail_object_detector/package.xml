@@ -34,7 +34,7 @@
   <depend>cv_bridge</depend>
   <depend>image_geometry</depend>
   <depend>image_transport</depend>
-  <depend>rail_object_detector_msgs</depend>
+  <depend>rail_object_detection_msgs</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
