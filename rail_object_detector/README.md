@@ -152,12 +152,12 @@ and you will see the image you pointed to with detected objects highlighted and 
 Named `darknet_node` and `drfcn_node` for the Darknet and DRFCN detectors respectively. It is a wrapper for object detection through ROS services.  Relevant services and parameters are as follows:
 
 * **Services** (Darknet Only)
-  * `<detector_node>/objects_in_scene` ([object_detector/SceneQuery](srv/SceneQuery.srv))
+  * `<detector_node>/objects_in_scene` ([rail_object_detection_msgs/SceneQuery](../rail_object_detection_msgs/srv/SceneQuery.srv))
   <br/>Scene Query service: recognize objects in the latest image from the camera stream `image_sub_topic_name`.  Takes no input, and outputs a list of detected, labeled objects and a corresponding image.  Only advertised if `use_scene_service` is true.
-  * `<detector_node>/objects_in_image` ([object_detector/ImageQuery](srv/ImageQuery.srv))
+  * `<detector_node>/objects_in_image` ([rail_object_detection_msgs/ImageQuery](../rail_object_detection_msgs/srv/ImageQuery.srv))
   <br/>Image Query service: recognize objects in an image passed to the service.  Takes an image as input, and outputs a list of detected, labeled objects and a corresponding image. Only advertised if `use_image_service` is true.
 * **Topics** (Darknet and DRFCN)
-  * `<detector_node>/detections` ([object_detector/Detections](msg/Detections.msg))
+  * `<detector_node>/detections` ([rail_object_detection_msgs/Detections](../rail_object_detection_msgs/msg/Detections.msg))
   <br/>Topic with object detections performed in the background by grabbing images at a specified interval. For Darknet, advertised if `publish_detections_topic` is true. For DRFCN, this is always published.
   * `<detector_node>/debug/object_image` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
   <br/>Topic with object detections visualized on incoming images as they come in from the subscriber. Only published if `debug:=true`. Currently unavailable for the Darknet detector.
