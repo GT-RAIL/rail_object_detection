@@ -2,8 +2,8 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.1 (2018-09-07)
+------------------
 * Create a separate package for the messages
 * Contributors: Siddhartha Banerjee, banerjs
 
