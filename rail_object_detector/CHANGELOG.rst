@@ -2,6 +2,11 @@
 Changelog for package rail_object_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Create a separate package for the messages
+* Contributors: Siddhartha Banerjee, banerjs
+
 2.0.1 (2017-12-11)
 ------------------
 * Added Deformable RFCN detector.
