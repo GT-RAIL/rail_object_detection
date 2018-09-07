@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_geometry
   image_transport
-  message_generation
+  rail_object_detection_msgs
   roscpp
   sensor_msgs
   std_msgs
@@ -48,25 +48,25 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  Object.msg
-  Detections.msg
-)
+# add_message_files(
+#   FILES
+#   Object.msg
+#   Detections.msg
+# )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  SceneQuery.srv
-  ImageQuery.srv
-)
+# add_service_files(
+#   FILES
+#   SceneQuery.srv
+#   ImageQuery.srv
+# )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  sensor_msgs
-  std_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   sensor_msgs
+#   std_msgs
+# )
 
 ###################################
 ## catkin specific configuration ##
@@ -84,8 +84,8 @@ catkin_package(
   CATKIN_DEPENDS
     cv_bridge
     image_transport
-    message_runtime
     sensor_msgs
+    rail_object_detection_msgs
 #  DEPENDS system_lib
 )
 
