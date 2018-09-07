@@ -5,7 +5,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from rail_object_detector.srv import SceneQuery, SceneQueryRequest, SceneQueryResponse
+from rail_object_detection_msgs.srv import SceneQuery, SceneQueryRequest, SceneQueryResponse
 
 COLORS = [(10,10,10), (100,10,10), (200,10,10), (10,100,10), (10,200,10),
 (10,10,100), (10,10,200), (100,100,100), (200,100,100), (100,200,100),
