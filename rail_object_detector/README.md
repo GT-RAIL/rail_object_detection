@@ -1,7 +1,5 @@
 # RAIL Object Detector
 
-[![Build Status](https://travis-ci.org/GT-RAIL/rail_object_detector.svg?branch=master)](https://travis-ci.org/GT-RAIL/rail_object_detector)
-
 ## Two Minute Intro
 
 This package now includes two object detectors which you may choose between, YOLOv2 and Deformable R-FCN (DRFCN). Detections from YOLOv2 are a bit faster, >10fps compared to ~4fps (on a Titan X), but less accurate than the detections from DRFCN.
