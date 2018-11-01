@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>rail_object_detection</name>
-  <version>3.0.1</version>
+  <version>3.0.2</version>
   <description>Object Detection methods used in the RAIL Lab</description>
 
   <author email="banerjs.sid@gmail.com">Siddhartha Banerjee</author>

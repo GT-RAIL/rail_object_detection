@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>rail_object_detector</name>
-  <version>3.0.1</version>
+  <version>3.0.2</version>
   <description>The rail_object_detector package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->

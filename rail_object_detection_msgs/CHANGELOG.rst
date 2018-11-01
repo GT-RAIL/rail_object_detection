@@ -2,8 +2,8 @@
 Changelog for package rail_object_detection_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.2 (2018-11-01)
+------------------
 * Update the default branch name
 
 3.0.1 (2018-09-07)
